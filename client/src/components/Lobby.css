@@ -1,0 +1,100 @@
+.lobby {
+    height: 100%;
+    width: 100%;
+    background: #2f3136;
+    color: #d9d9d9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lobby-header {
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.lobby-header h1 {
+    margin: 0;
+    font-size: 3rem;
+    color: #39aaff;
+}
+
+.lobby-header p {
+    margin-top: 8px;
+    color: #a8a8a8;
+    font-size: 1.1rem;
+}
+
+.lobby-cards {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.lobby-card {
+    background: #1f2125;
+    width: 360px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.lobby-card h2 {
+    text-align: center;
+    margin: 18px 0 10px;
+    font-size: 2rem;
+}
+
+.lobby-card-create-title {
+    color: #29e36a;
+}
+
+.lobby-card-join-title {
+    color: #f0b22e;
+}
+
+.lobby-card p {
+    text-align: center;
+    color: #9ca0a8;
+    margin-bottom: 18px;
+    padding: 0 16px;
+}
+
+.lobby-card input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #181a1e;
+    border: none;
+    border-top: 1px solid #2b2f36;
+    border-bottom: 1px solid #2b2f36;
+    color: #ddd;
+    padding: 16px;
+    font-size: 1.2rem;
+    outline: none;
+}
+
+.lobby-card button {
+    width: 100%;
+    border: none;
+    background: #181a1e;
+    color: #cfcfcf;
+    padding: 16px;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.lobby-card button:hover {
+    background: #22252b;
+}
+
+.lobby-footer {
+    margin-top: 26px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.25);
+    font-weight: 600;
+    width: 100%;
+    padding: 8px 0;
+}
