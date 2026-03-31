@@ -1,0 +1,136 @@
+.waiting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+
+    .card {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: var(--card-color);
+        max-width: 450px;
+        width: 450px;
+        gap: 30px;
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px;
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+
+            .top {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                width: 100%;
+
+                .back {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    border-radius: 15px;
+                    padding: 10px;
+                    cursor: pointer;
+                    transition: all ease-in-out 0.2s;
+
+                    &:hover {
+                        background-color: var(--border-color);
+                        // TODO change hover background
+                        opacity: 0.8;
+                    }
+                }
+
+                .player-count {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+            }
+
+            .title {
+                font-size: 1.5em;
+                font-weight: 800;
+            }
+
+            .game-info {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 5px;
+
+                .game-id {
+                    text-align: center;
+                    color: var(--secondary-text-color);
+                    font-size: .8em;
+                }
+
+                .game-code {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    width: 100%;
+                    background-color: var(--input-color);
+                    padding: 10px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 10px;
+
+                    .text {
+                        color: var(--primary-color);
+                        letter-spacing: 5px;
+                        font-size: 1.8em;
+                        font-weight: 600;
+                    }
+
+                    svg {
+                        cursor: pointer;
+                    }
+                }
+            }
+
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+
+            .list-title {
+                color: var(--secondary-text-color);
+                font-size: .8em;
+            }
+
+            .list {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 5px;
+            }
+
+            .loader {
+                color: var(--secondary-text-color);
+                font-size: .8em;
+                text-align: center;
+            }
+        }
+
+        .footer {
+            width: 100%;
+        }
+    }
+}

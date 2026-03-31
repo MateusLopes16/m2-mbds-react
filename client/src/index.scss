@@ -6,12 +6,21 @@
     --primary-color: #57cb60;
     --text-color: #fff;
     --secondary-text-color: #8f8f8f;
+
+    --player-color: #2b7fff;
+    --host-color: #fe9a00;
+
+    --blue-player-color: #2b7fff;
+    --red-player-color: #fb2c36;
+    --green-player-color: #57cb60;
+    --orange-player-color: #fe9a00;
 }
 
 * {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
+    box-sizing: border-box;
 }
 
 html,

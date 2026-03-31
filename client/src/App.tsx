@@ -1,10 +1,10 @@
-import './App.css'
-import Lobby from './components/Lobby.tsx'
+import './App.scss'
+import Game from './components/game/Game.tsx'
 
 function App() {
   return (
     <>
-      <Lobby></Lobby>
+      <Game></Game>
     </>
   )
 }
