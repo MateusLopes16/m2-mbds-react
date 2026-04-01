@@ -13,7 +13,9 @@ type WebSocketContextType = {
   currentGame: Game | null;
   currentPlayerName: string;
   connectToWebSocket: (roomId: string, playerName: string) => Socket;
+  leaveRoom: (roomId: string) => void;
   disconnectFromWebSocket: () => void;
+  startGame: (roomId: string) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -88,11 +90,37 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       });
       console.log('Player added to room:', player.name);
     });
+
+    activeSocket.on('gameStarted', () => {
+      console.log('Partie lancée');
+    });
+
+    activeSocket.on('roomUpdated', (game: Game) => {
+      setCurrentGame(game);
+    });
   };
 
   const disconnectFromWebSocket = () => {
     socketRef.current?.disconnect();
     setCurrentGame(null);
+  };
+
+  const leaveRoom = (roomId: string) => {
+    if (!roomId) return;
+
+    emitMessage('leaveRoom', {
+      id: roomId,
+      playerName: currentPlayerName,
+    });
+  };
+
+  const startGame = (roomId: string) => {
+    if (!roomId) return;
+
+    emitMessage('startGame', {
+      id: roomId,
+      playerName: currentPlayerName,
+    });
   };
 
   const emitMessage = (eventName: string, payload: unknown) => {
@@ -117,7 +145,9 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       currentGame,
       currentPlayerName,
       connectToWebSocket,
+      leaveRoom,
       disconnectFromWebSocket,
+      startGame,
     }),
     [isConnected, socketId, currentGame, currentPlayerName],
   );

@@ -1,0 +1,44 @@
+// Reusable SweetAlert2 theme for the app
+.app-swal-popup {
+    background-color: var(--card-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 14px !important;
+    color: var(--text-color) !important;
+}
+
+.app-swal-title {
+    color: var(--text-color) !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+}
+
+.app-swal-text {
+    color: var(--secondary-text-color) !important;
+    font-size: 0.95rem !important;
+}
+
+.app-swal-confirm,
+.app-swal-cancel {
+    border: 1px solid var(--border-color) !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    margin: 0 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.app-swal-confirm {
+    background-color: var(--primary-color) !important;
+    color: #0b0d18 !important;
+}
+
+.app-swal-cancel {
+    background-color: var(--input-color) !important;
+    color: var(--text-color) !important;
+}
+
+.app-swal-confirm:hover,
+.app-swal-cancel:hover {
+    opacity: 0.85;
+}

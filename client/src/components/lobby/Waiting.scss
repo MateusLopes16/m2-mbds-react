@@ -38,6 +38,10 @@
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
+                    border: none;
+                    background: transparent;
+                    color: inherit;
+                    font: inherit;
                     border-radius: 15px;
                     padding: 10px;
                     cursor: pointer;
@@ -97,6 +101,21 @@
 
                     svg {
                         cursor: pointer;
+                    }
+                }
+
+                .copy-feedback {
+                    color: var(--secondary-text-color);
+                    font-size: .75em;
+                    text-align: center;
+                    min-height: 16px;
+                    opacity: 0;
+                    transform: translateY(-2px);
+                    transition: opacity 0.2s ease, transform 0.2s ease;
+
+                    &.visible {
+                        opacity: 1;
+                        transform: translateY(0);
                     }
                 }
             }
