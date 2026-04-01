@@ -19,9 +19,9 @@
 
         .board-cell {
             flex: 1;
-            border-radius: 10px;
-            background-color: color-mix(var(--input-color) 50%, transparent);
-            border: 1px dashed color-mix(var(--border-color) 80%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     }
 }

@@ -2,7 +2,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
     width: 100%;
 
 
@@ -128,6 +127,7 @@
                 border-radius: 15px;
                 font-size: 0.9em;
                 color: var(--secondary-text-color);
+                width: 100%;
             }
         }
     }

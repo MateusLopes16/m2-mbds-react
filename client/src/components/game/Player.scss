@@ -80,6 +80,7 @@ $player-colors: (
             border-radius: 5px;
             border: 2px dashed var(--border-color);
             margin: 2px;
+            background-color: color-mix(var(--card-color) 50%, transparent);
 
             &.active {
                 background-color: currentColor;

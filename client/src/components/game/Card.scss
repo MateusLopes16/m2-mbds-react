@@ -1,0 +1,72 @@
+$player-colors: (
+    "blue": var(--blue-player-color),
+    "red": var(--red-player-color),
+    "green": var(--green-player-color),
+    "orange": var(--orange-player-color)
+);
+
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: var(--player-color);
+    border: 3px solid var(--player-color);
+    transition: all 0.3s ease-in-out;
+
+    @each $name, $value in $player-colors {
+        &.#{$name} {
+            --player-color: #{$value};
+        }
+    }
+
+    .card-number {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: var(--text-color);
+    }
+
+    &.clickable {
+        cursor: pointer;
+        border: 3px solid var(--border-color);
+        outline: 3px solid var(--text-color);
+        position: relative;
+
+
+
+        &:hover {
+            transform: scale(1.05);
+        }
+    }
+
+    .indicator {
+        position: absolute;
+        font-size: .5em;
+        top: -10px;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: var(--player-color);
+        color: var(--text-color);
+
+        @each $name, $value in $player-colors {
+            &.#{$name} {
+                --player-color: #{$value};
+            }
+        }
+
+        &.unclickable {
+            display: none;
+        }
+
+        &.clickable {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    }
+}

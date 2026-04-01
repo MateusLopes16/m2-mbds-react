@@ -1,0 +1,43 @@
+$player-colors: (
+    "blue": var(--blue-player-color),
+    "red": var(--red-player-color),
+    "green": var(--green-player-color),
+    "orange": var(--orange-player-color)
+);
+
+.placable-spot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: color-mix(currentColor 20%, transparent);
+    border: 3px dashed currentColor;
+    transition: all 0.1s ease-in-out;
+    font-size: 2em;
+    animation: pulse 2s infinite;
+    cursor: pointer;
+
+    @each $name, $value in $player-colors {
+        &.#{$name} {
+            color: #{$value};
+        }
+    }
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}

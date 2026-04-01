@@ -16,8 +16,8 @@ function PlayerCard({ player }: { player: any }) {
                 null
             }
             {player.isHost ?
-                (<div className="indicator host">HOTE</div>) :
-                (<div className="indicator player">PLAYER</div>)
+                (<div className="role host">HOTE</div>) :
+                (<div className="role player">PLAYER</div>)
             }
         </div>
     )

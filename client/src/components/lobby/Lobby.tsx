@@ -1,55 +1,36 @@
 import './Lobby.scss';
-import { useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from '../../service/WebSocket';
+
+const MAX_PLAYER_NAME_LENGTH = 8;
 
 function Lobby() {
-    const [activeTab, setActiveTab] = useState(''); const [gameId, setGameId] = useState('');
-    const socketRef = useRef<Socket | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
-    const [socketId, setSocketId] = useState<string | null>(null);
-    const [message, setMessage] = useState<string>('');
-    const [count, setCount] = useState(0);
+    const [activeTab, setActiveTab] = useState('');
+    const [gameId, setGameId] = useState('');
+    const [playerName, setPlayerName] = useState('');
+    const navigate = useNavigate();
+    const { connectToWebSocket } = useWebSocket();
+
+    const createRoomId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
     const handleCreateGame = () => {
-        if (socketRef.current?.connected) return;
+        const trimmedName = playerName.trim().slice(0, MAX_PLAYER_NAME_LENGTH);
+        if (!trimmedName) return;
 
-        const socket = io('http://localhost:3000', {
-            transports: ['websocket'],
-        });
-
-        registerSocketEvents(socket);
-        socketRef.current = socket;
-    };
+        const newRoomId = createRoomId();
+        connectToWebSocket(newRoomId, trimmedName);
+        navigate(`/lobby/${newRoomId}`);
+    }
 
     const handleJoinGame = () => {
-        if (socketRef.current?.connected) return;
+        const trimmedName = playerName.trim().slice(0, MAX_PLAYER_NAME_LENGTH);
+        const trimmedGameId = gameId.trim().toUpperCase();
+        if (!trimmedName || !trimmedGameId) return;
 
-        const socket = io('http://localhost:3000', {
-            transports: ['websocket'],
-        });
-
-        registerSocketEvents(socket);
-        socketRef.current = socket;
-    };
-
-    const registerSocketEvents = (socket: Socket) => {
-        socket.on('connect', () => {
-            socket.emit("playerJoinGame", { idSession: "test-room-1" });
-        });
-
-        socket.on("updateUserCount", (count) => {
-            setIsConnected(true);
-            setSocketId(socket.id ?? null);
-            setMessage('Connected to WebSocket server ✅');
-            setCount(count);
-        });
-
-        socket.on('disconnect', () => {
-            setIsConnected(false);
-            setSocketId(null);
-            setMessage('Disconnected from server ❌');
-        });
-    };
+        connectToWebSocket(trimmedGameId, trimmedName);
+        navigate(`/lobby/${trimmedGameId}`);
+    }
 
     return (
         <div className="lobby">
@@ -65,7 +46,14 @@ function Lobby() {
                     <label className="player-name" htmlFor="playerName">NOM DU JOUEUR</label>
                     <div className="input-container">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
-                        <input type="text" id="playerName" placeholder="Entrez votre nom" />
+                        <input
+                            type="text"
+                            id="playerName"
+                            placeholder="Entrez votre nom"
+                            value={playerName}
+                            maxLength={MAX_PLAYER_NAME_LENGTH}
+                            onChange={(e) => setPlayerName(e.target.value.slice(0, MAX_PLAYER_NAME_LENGTH))}
+                        />
                     </div>
                     <div className="options-container">
                         <div className={`create options ${activeTab === 'create' ? 'selected' : ''}`} onClick={() => setActiveTab('create')}>
@@ -83,7 +71,7 @@ function Lobby() {
                         <div className="text">
                             Creez une nouvelle partie et invitez vos amis à rejoindre en partageant le Game ID unique généré pour votre session de jeu.
                         </div>
-                        <button className="full-button" onClick={handleCreateGame}>Créer une nouvelle partie</button>
+                        <button className="full-button" disabled={!playerName} onClick={handleCreateGame}>Créer une nouvelle partie</button>
                     </div>
                 )}
                 {activeTab === "join" && (
@@ -92,7 +80,7 @@ function Lobby() {
                         <div className="input-container">
                             <input type="text" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => setGameId(e.target.value.toUpperCase())} />
                         </div>
-                        <button className="full-button" onClick={handleJoinGame}>Rejoindre la partie</button>
+                        <button className="full-button" disabled={!playerName && !gameId} onClick={handleJoinGame}>Rejoindre la partie</button>
                     </div>
                 )}
                 {!activeTab && (

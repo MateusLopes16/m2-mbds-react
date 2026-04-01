@@ -8,7 +8,7 @@ function Game() {
             name: 'aaaaaaaa',
             color: 'blue',
             vertical: false,
-            active: false,
+            active: true,
             point1: true,
             point2: false
         },
@@ -21,7 +21,7 @@ function Game() {
             point2: false
         },
         {
-            name: 'nnnnnnnn',
+            name: 'wwwwwwww',
             color: 'green',
             vertical: true,
             active: false,

@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 initSocketServer(server);
 
 // Initialize Mongoose connection
-initMongooseConnection();
+// initMongooseConnection();
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
