@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { Game, Player, RoomConnection } from './WebSocketObjects';
+import type { GameObject, PlayerObject, RoomConnectionObject } from './WebSocketObjects';
 
 
 const SOCKETSERVERURL = 'http://localhost:3000';
@@ -10,7 +10,7 @@ type WebSocketContextType = {
   socket: Socket | null;
   isConnected: boolean;
   socketId: string | null;
-  currentGame: Game | null;
+  currentGame: GameObject | null;
   currentPlayerName: string;
   connectToWebSocket: (roomId: string, playerName: string) => Socket;
   leaveRoom: (roomId: string) => void;
@@ -23,8 +23,9 @@ const WebSocketContext = createContext<WebSocketContextType | null>(null);
 function WebSocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string | null>(null);
-  const [currentGame, setCurrentGame] = useState<Game | null>(null);
+  const [currentGame, setCurrentGame] = useState<GameObject | null>(null);
   const [currentPlayerName, setCurrentPlayerName] = useState('');
+  const [currentPlayerColor, setCurrentPlayerColor] = useState('');
   const socketRef = useRef<Socket | null>(null);
 
   //get or create a socket connection
@@ -54,14 +55,14 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
     activeSocket.on('connect', () => {
       setIsConnected(true);
       setSocketId(activeSocket.id ?? null);
-      const room: RoomConnection = {
+      const room: RoomConnectionObject = {
         id: roomId,
         player: {
           name: playerName,
           score: 0,
           color: '',
           isHost: false,
-        } as Player,
+        } as PlayerObject,
       };
       emitMessage('joinRoom', room);
     });
@@ -72,15 +73,15 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       setCurrentGame(null);
     });
 
-    activeSocket.on('joinedRoom', (game: Game) => {
+    activeSocket.on('joinedRoom', (game: GameObject) => {
       setCurrentGame(game);
       console.log('Joined room:', game.id);
     });
 
-    activeSocket.on('addPlayerToRoom', (player: Player) => {
-      setCurrentGame((previousGame) => {
+    activeSocket.on('addPlayerToRoom', (player: PlayerObject) => {
+      setCurrentGame((previousGame: any) => {
         if (!previousGame) return previousGame;
-        const playerAlreadyExists = previousGame.players.some((existingPlayer) => existingPlayer.name === player.name);
+        const playerAlreadyExists = previousGame.players.some((existingPlayer: any) => existingPlayer.name === player.name);
         if (playerAlreadyExists) return previousGame;
 
         return {
@@ -95,7 +96,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       console.log('Partie lancée');
     });
 
-    activeSocket.on('roomUpdated', (game: Game) => {
+    activeSocket.on('roomUpdated', (game: GameObject) => {
       setCurrentGame(game);
     });
   };

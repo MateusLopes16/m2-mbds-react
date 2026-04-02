@@ -1,27 +1,39 @@
-export interface Game {
+export interface GameObject {
     id: string;
-    players: Player[];
+    players: PlayerObject[];
 }
 
-export interface Player {
+export interface PlayerObject {
     name: string;
     score: number;
     color: string;
     isHost: boolean;
 }
 
-export interface Card {
+export interface CardObject {
     value: string;
-    color: string;
-    owner: Player;
+    owner: PlayerObject;
 }
 
-export interface Placement {
-    card: Card;
+export interface PlacementObject {
+    card: CardObject;
     position: { x: number; y: number };
 }
 
-export interface RoomConnection {
+export interface RoomConnectionObject {
     id: string;
-    player: Player;
+    player: PlayerObject;
 }
+
+export interface BoardObject {
+    cells: BoardCellObject[][];
+}
+
+export type BoardCellObject = {
+    type: 'unplacable';
+} | {
+    type: 'placable';
+} | {
+    type: 'card';
+    card: CardObject;
+};
