@@ -1,55 +1,94 @@
 import './Game.scss'
 import Player from './Player'
 import Board from './Board'
+import { useWebSocket } from '../../service/WebSocket'
 
 function Game() {
-    const players = [
-        {
-            name: 'aaaaaaaa',
-            color: 'blue',
-            vertical: false,
-            active: true,
-            point1: true,
-            point2: false
-        },
-        {
-            name: 'bbbbbbbb',
-            color: 'red',
-            vertical: true,
-            active: false,
-            point1: false,
-            point2: false
-        },
-        {
-            name: 'wwwwwwww',
-            color: 'green',
-            vertical: true,
-            active: false,
-            point1: false,
-            point2: false
-        },
-        {
-            name: 'rrrrrrrr',
-            color: 'orange',
-            vertical: false,
-            active: false,
-            point1: false,
-            point2: false
+    const { currentGame, activePlayerName, currentCard, currentPlayerName } = useWebSocket()
+
+    if (!currentGame || !currentGame.players) {
+        return <div>Loading...</div>
+    }
+
+    const players = currentGame.players.map((player) => ({
+        name: player.name,
+        color: player.color,
+        active: player.name === activePlayerName,
+        point1: player.score == 1 ? true : false,
+        point2: player.score == 2 ? true : false,
+    }));
+
+    const numPlayers = players.length;
+
+    // Arrange players based on player count
+    const getPlayerAtPosition = (position: number) => {
+        if (numPlayers === 2) {
+            // 2 players: positions 0 (top) and 3 (bottom)
+            if (position === 0 || position === 3) {
+                return players[position === 0 ? 0 : 1];
+            }
+            return null; // Disabled spots at positions 1 and 2
+        } else if (numPlayers === 3) {
+            // 3 players: positions 0 (top), 1 (left), 2 (right)
+            if (position <= 2) {
+                return players[position];
+            }
+            return null; // Disabled spot at position 3
+        } else if (numPlayers === 4) {
+            // 4 players: all positions
+            return players[position];
         }
-    ]
+        return null;
+    };
+
+    const renderPlayerSpot = (playerIndex: number) => {
+        const player = getPlayerAtPosition(playerIndex);
+        
+        if (player) {
+            const cardValue = player.active && currentCard ? currentCard.value : '';
+            return (
+                <Player 
+                    key={player.name} 
+                    name={player.name} 
+                    color={player.color} 
+                    vertical={playerIndex === 1 || playerIndex === 2} 
+                    active={player.active}
+                    point1={player.point1} 
+                    point2={player.point2} 
+                    currentCard={cardValue} 
+                    activeCardColor={player.active && currentCard ? currentCard.color : undefined}
+                    isPlayingActive={!!activePlayerName}
+                />
+            );
+        } else {
+            return (
+                <Player 
+                    key={`empty-${playerIndex}`}
+                    name="Empty Spot" 
+                    color="gray" 
+                    vertical={playerIndex === 1 || playerIndex === 2}
+                    active={false} 
+                    point1={false} 
+                    point2={false} 
+                    currentCard='' 
+                    isPlayingActive={!!activePlayerName}
+                />
+            );
+        }
+    };
 
     return (
         <div className="game-container">
             <div className="top">
-                <Player key={players[0].name} name={players[0].name} color={players[0].color} vertical={players[0].vertical} active={players[0].active} point1={players[0].point1} point2={players[0].point2} currentCard='8' />
+                {renderPlayerSpot(0)}
             </div>
             <div className="center">
-                <Player key={players[1].name} name={players[1].name} color={players[1].color} vertical={players[1].vertical} active={players[1].active} point1={players[1].point1} point2={players[1].point2} currentCard='8' />
-                <Board></Board>
-                <Player key={players[2].name} name={players[2].name} color={players[2].color} vertical={players[2].vertical} active={players[2].active} point1={players[2].point1} point2={players[2].point2} currentCard='8' />
+                {renderPlayerSpot(1)}
+                <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} />
+                {renderPlayerSpot(2)}
             </div>
             <div className="bottom">
-                <Player key={players[3].name} name={players[3].name} color={players[3].color} vertical={players[3].vertical} active={players[3].active} point1={players[3].point1} point2={players[3].point2} currentCard='8' />
+                {renderPlayerSpot(3)}
             </div>
         </div>
     )

@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { GameObject, PlayerObject, RoomConnectionObject } from './WebSocketObjects';
+import { useNavigate } from 'react-router-dom';
+import type { CardObject, GameObject, PlayerObject, RoomConnectionObject, TurnObject } from './WebSocketObjects';
+import Swal from 'sweetalert2';
 
 
 const SOCKETSERVERURL = 'http://localhost:3000';
@@ -12,6 +14,8 @@ type WebSocketContextType = {
   socketId: string | null;
   currentGame: GameObject | null;
   currentPlayerName: string;
+  activePlayerName: string | null;
+  currentCard: CardObject | null;
   connectToWebSocket: (roomId: string, playerName: string) => Socket;
   leaveRoom: (roomId: string) => void;
   disconnectFromWebSocket: () => void;
@@ -26,7 +30,11 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
   const [currentGame, setCurrentGame] = useState<GameObject | null>(null);
   const [currentPlayerName, setCurrentPlayerName] = useState('');
   const [currentPlayerColor, setCurrentPlayerColor] = useState('');
+  const [activePlayerName, setActivePlayerName] = useState<string | null>(null);
+  const [currentCard, setCurrentCard] = useState<CardObject | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const navigate = useNavigate();
+  const [players, setPlayers] = useState<PlayerObject[]>([]);
 
   //get or create a socket connection
   const getOrCreateSocket = (roomId: string, playerName: string): Socket => {
@@ -60,7 +68,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
         player: {
           name: playerName,
           score: 0,
-          color: '',
+          color: [''],
           isHost: false,
         } as PlayerObject,
       };
@@ -75,6 +83,8 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
 
     activeSocket.on('joinedRoom', (game: GameObject) => {
       setCurrentGame(game);
+      roomId = game.id;
+      navigate('/lobby/' + roomId);
       console.log('Joined room:', game.id);
     });
 
@@ -92,17 +102,44 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       console.log('Player added to room:', player.name);
     });
 
-    activeSocket.on('gameStarted', () => {
-      console.log('Partie lancée');
+    activeSocket.on('gameStarted', (game: GameObject) => {
+      setCurrentGame(game);
+      setCurrentPlayerColor(game.players.find((player) => player.name === playerName)?.color[0] ?? '');
+      setPlayers(game.players);
+      navigate('/game/' + roomId);
+      console.log('Partie lancée', game.board);
     });
 
-    activeSocket.on('roomUpdated', (game: GameObject) => {
+    activeSocket.on('deletePlayerInRoom', (game: GameObject) => {
       setCurrentGame(game);
+    });
+
+    activeSocket.on('playerTurn', (turn: TurnObject) => {
+      setCurrentGame(turn.game);
+      setActivePlayerName(turn.card.owner.name);
+      setCurrentCard(turn.card);
+    });
+
+    activeSocket.on('error', (error: { message: string }) => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: error.message,
+        customClass: {
+          popup: 'app-swal-popup',
+          title: 'app-swal-title',
+          htmlContainer: 'app-swal-text',
+          confirmButton: 'app-swal-confirm',
+          cancelButton: 'app-swal-cancel',
+        },
+      });
+      disconnectFromWebSocket();
     });
   };
 
   const disconnectFromWebSocket = () => {
     socketRef.current?.disconnect();
+    socketRef.current = null;
     setCurrentGame(null);
   };
 
@@ -145,12 +182,14 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       socketId,
       currentGame,
       currentPlayerName,
+      activePlayerName,
+      currentCard,
       connectToWebSocket,
       leaveRoom,
       disconnectFromWebSocket,
       startGame,
     }),
-    [isConnected, socketId, currentGame, currentPlayerName],
+    [isConnected, socketId, currentGame, currentPlayerName, activePlayerName, currentCard],
   );
 
   return (

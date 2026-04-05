@@ -1,6 +1,5 @@
 import './Lobby.scss';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useWebSocket } from '../../service/WebSocket';
 
 const MAX_PLAYER_NAME_LENGTH = 8;
@@ -9,18 +8,13 @@ function Lobby() {
     const [activeTab, setActiveTab] = useState('');
     const [gameId, setGameId] = useState('');
     const [playerName, setPlayerName] = useState('');
-    const navigate = useNavigate();
     const { connectToWebSocket } = useWebSocket();
-
-    const createRoomId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
     const handleCreateGame = () => {
         const trimmedName = playerName.trim().slice(0, MAX_PLAYER_NAME_LENGTH);
         if (!trimmedName) return;
 
-        const newRoomId = createRoomId();
-        connectToWebSocket(newRoomId, trimmedName);
-        navigate(`/lobby/${newRoomId}`);
+        connectToWebSocket('', trimmedName);
     }
 
     const handleJoinGame = () => {
@@ -29,7 +23,6 @@ function Lobby() {
         if (!trimmedName || !trimmedGameId) return;
 
         connectToWebSocket(trimmedGameId, trimmedName);
-        navigate(`/lobby/${trimmedGameId}`);
     }
 
     return (

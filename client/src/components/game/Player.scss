@@ -2,7 +2,8 @@ $player-colors: (
     "blue": var(--blue-player-color),
     "red": var(--red-player-color),
     "green": var(--green-player-color),
-    "orange": var(--orange-player-color)
+    "orange": var(--orange-player-color),
+    "gray": var(--gray-player-color)
 );
 
 .player-container {
@@ -47,6 +48,26 @@ $player-colors: (
         @each $name, $value in $player-colors {
             &.#{$name} {
                 color: #{$value};
+            }
+        }
+    }
+
+    .color-indicators {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: center;
+
+        .color-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: currentColor;
+
+            @each $name, $value in $player-colors {
+                &.#{$name} {
+                    color: #{$value};
+                }
             }
         }
     }

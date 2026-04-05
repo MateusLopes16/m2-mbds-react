@@ -1,11 +1,41 @@
 const games = {};
 const maxPlayersPerRoom = 4;
+const { initGame, playerTurn } = require('../model/Game');
+
+function checkPlayerAlreadyInRoom(game, playerName) {
+    return game.players.some((player) => player.name === playerName);
+}
+
+function createUniqueIdSession() {
+    return Math.random().toString(36).substr(2, 6).toUpperCase();
+}
 
 function registerSocketEvents(io, socket) {
-    socket.on('joinRoom', async (room) => {
-        const idSession = room?.id;
+    socket.on('joinRoom', handleJoinRoom(io, socket));
+    socket.on('leaveRoom', handleLeaveRoom(io, socket));
+    socket.on('startGame', handleStartGame(io, socket));
+    socket.on('disconnect', handleDisconnect(io, socket));
+}
+
+function handleJoinRoom(io, socket) {
+    return async (room) => {
+        let idSession = room?.id;
+        if (idSession && !games[idSession]) {
+            emitToSocket(io, socket.id, 'error', { message: 'room does not exist' });
+            return;
+        } else {
+            if (!idSession) {
+                idSession = createUniqueIdSession();
+            }
+        }
+
         if (!idSession || !room?.player) {
             emitToSocket(io, socket.id, 'error', { message: 'Invalid room payload' });
+            return;
+        }
+
+        if (games[idSession] && checkPlayerAlreadyInRoom(games[idSession], room.player.name)) {
+            emitToSocket(io, socket.id, 'error', { message: 'Player name already taken in this room' });
             return;
         }
 
@@ -27,9 +57,11 @@ function registerSocketEvents(io, socket) {
         const game = games[idSession];
         emitToSocket(io, socket.id, 'joinedRoom', game);
         emitToRoom(io, idSession, 'addPlayerToRoom', room.player);
-    });
+    };
+}
 
-    socket.on('leaveRoom', (payload) => {
+function handleLeaveRoom(io, socket) {
+    return (payload) => {
         const idSession = payload?.id ?? socket.data?.roomId;
         const playerName = payload?.playerName ?? socket.data?.playerName;
         if (!idSession || !playerName) {
@@ -44,9 +76,11 @@ function registerSocketEvents(io, socket) {
 
         removePlayerFromRoom(io, idSession, playerName);
         socket.leave(idSession);
-    });
+    };
+}
 
-    socket.on('startGame', (payload) => {
+function handleStartGame(io, socket) {
+    return (payload) => {
         const idSession = payload?.id;
         const playerName = payload?.playerName;
         if (!idSession || !playerName) {
@@ -66,10 +100,17 @@ function registerSocketEvents(io, socket) {
             return;
         }
 
-        emitToRoom(io, idSession, 'gameStarted', { id: idSession });
-    });
+        // Initialize game with board and player colors
+        const initializedGame = initGame(game.players);
+        games[idSession] = { ...game, ...initializedGame };
 
-    socket.on('disconnect', () => {
+        emitToRoom(io, idSession, 'gameStarted', games[idSession]);
+        emitToRoom(io, idSession, 'playerTurn', playerTurn(games[idSession]));
+    };
+}
+
+function handleDisconnect(io, socket) {
+    return () => {
         const idSession = socket.data?.roomId;
         const playerName = socket.data?.playerName;
         if (!idSession || !playerName || !games[idSession]) {
@@ -77,7 +118,7 @@ function registerSocketEvents(io, socket) {
         }
 
         removePlayerFromRoom(io, idSession, playerName);
-    });
+    };
 }
 
 /**
@@ -106,7 +147,7 @@ function removePlayerFromRoom(io, roomId, playerName) {
         game.players[0].isHost = true;
     }
 
-    emitToRoom(io, roomId, 'roomUpdated', game);
+    emitToRoom(io, roomId, 'deletePlayerInRoom', game);
 }
 
 function emitToRoom(io, roomId, eventName, payload) {

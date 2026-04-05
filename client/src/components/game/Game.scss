@@ -27,4 +27,17 @@
         align-items: center;
         width: 100%;
     }
+
+    .player-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+        border-style: dashed !important;
+
+        .disabled-content {
+            font-size: 48px;
+            color: #999;
+            font-weight: bold;
+        }
+    }
 }
