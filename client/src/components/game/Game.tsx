@@ -4,7 +4,7 @@ import Board from './Board'
 import { useWebSocket } from '../../service/WebSocket'
 
 function Game() {
-    const { currentGame, activePlayerName, currentCard, currentPlayerName } = useWebSocket()
+    const { currentGame, activePlayerName, currentCard, currentPlayerName, placeCard } = useWebSocket()
 
     if (!currentGame || !currentGame.players) {
         return <div>Loading...</div>
@@ -77,6 +77,20 @@ function Game() {
         }
     };
 
+    const handleCellClick = (x: number, y: number) => {
+        if (!currentCard) {
+            console.log('No card to place');
+            return;
+        }
+
+        const placement = {
+            card: currentCard,
+            position: { x, y },
+        };
+
+        placeCard(placement);
+    };
+
     return (
         <div className="game-container">
             <div className="top">
@@ -84,7 +98,7 @@ function Game() {
             </div>
             <div className="center">
                 {renderPlayerSpot(1)}
-                <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} />
+                <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} onCellClick={handleCellClick} />
                 {renderPlayerSpot(2)}
             </div>
             <div className="bottom">

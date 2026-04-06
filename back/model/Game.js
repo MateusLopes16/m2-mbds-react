@@ -27,6 +27,14 @@ function initGame(players) {
     giveColorToPlayers(players);
     giveCardsToPlayers(players);
 
+    players.shuffle = function () {
+        for (let i = this.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this[i], this[j]] = [this[j], this[i]];
+        }
+    };
+    players.shuffle();
+
     // Create empty board with all unplacable spots
     const board = createEmptyBoard();
 
@@ -34,7 +42,8 @@ function initGame(players) {
         players: players,
         board: {
             cells: board
-        }
+        },
+        currentPlayerIndex: 0
     };
 }
 
@@ -150,11 +159,20 @@ function giveCardsToPlayers(players) {
 }
 
 function playerTurn(game) {
-    if (!game) {
+    if (!game || !game.players || game.players.length === 0) {
         return;
     }
-    const randomIndex = Math.floor(Math.random() * game.players.length);
-    const currentPlayer = game.players[randomIndex];
+
+    // Move to next player
+    game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
+
+    const currentPlayer = game.players[game.currentPlayerIndex];
+
+    // If player has no cards left, skip to next player
+    if (!currentPlayer.cards || currentPlayer.cards.length === 0) {
+        return playerTurn(game); // Recursively find next player with cards
+    }
+
     const playingCard = currentPlayer.cards[Math.floor(Math.random() * currentPlayer.cards.length)];
     const card = {
         type: 'card',
@@ -174,16 +192,13 @@ function updateBoardState(game, card) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
 
-    // Helper functions
     const isValidPosition = (row, col) => row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
     const isUnplacableSpot = (cell) => cell.type === 'unplacableSpot';
     const hasCard = (cell) => cell.value !== undefined;
 
-    // Check if board is empty (all unplacable spots)
     const isBoardEmpty = board.every(row => row.every(cell => isUnplacableSpot(cell)));
 
     if (isBoardEmpty) {
-        // Place 4 placable spots in the middle of the board (for 6x6: positions [2,2], [2,3], [3,2], [3,3])
         const midStart = Math.floor(BOARD_SIZE / 2) - 1;
         const middlePositions = [
             [midStart, midStart],
@@ -191,45 +206,50 @@ function updateBoardState(game, card) {
             [midStart + 1, midStart],
             [midStart + 1, midStart + 1]
         ];
-
         middlePositions.forEach(([row, col]) => {
             board[row][col] = { type: 'placableSpot' };
         });
-
         return;
     }
 
-    // Find all cards on the board and place placable spots around them
+    // Reset placable indicators
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            const cell = board[row][col];
+            if (cell.type === 'placableSpot') {
+                board[row][col] = { type: 'unplacableSpot' };
+            }
+            if (cell.type === 'card' || cell.type === 'placableCard') {
+                cell.type = 'card';
+                cell.isPlacable = false;
+            }
+        }
+    }
+
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+    // For each cell on the board
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = board[row][col];
 
-            // If this is a card, check its neighbors
-            if (hasCard(cell)) {
-                const directions = [
-                    [-1, 0], // up
-                    [1, 0],  // down
-                    [0, -1], // left
-                    [0, 1]   // right
-                ];
+            if (hasCard(cell) && cell.color !== card.color && cell.value < card.value) {
+                board[row][col] = {
+                    type: 'placableCard',
+                    value: cell.value,
+                    color: cell.color,
+                    owner: cell.owner,
+                    isPlacable: true
+                };
+            }
 
+            if (hasCard(cell)) {
                 directions.forEach(([dRow, dCol]) => {
                     const newRow = row + dRow;
                     const newCol = col + dCol;
-
-                    if (isValidPosition(newRow, newCol)) {
-                        const neighbor = board[newRow][newCol];
-
-                        // If neighbor is unplacable spot, make it placable
-                        if (isUnplacableSpot(neighbor)) {
-                            board[newRow][newCol] = { type: 'placableSpot' };
-                        }
-                        // If neighbor is a card with lower value and different color than current card, make it placable
-                        else if (hasCard(neighbor) && neighbor.color !== card.color && parseInt(neighbor.value) < parseInt(card.value)) {
-                            board[newRow][newCol] = {
-                                ...neighbor,
-                                isPlacable: true
-                            };
+                    if (isValidPosition(newRow, newCol) && isUnplacableSpot(board[newRow][newCol])) {
+                        board[newRow][newCol] = {
+                            type: 'placableSpot',
                         }
                     }
                 });

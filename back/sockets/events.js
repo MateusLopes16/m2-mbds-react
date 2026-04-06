@@ -15,6 +15,75 @@ function registerSocketEvents(io, socket) {
     socket.on('leaveRoom', handleLeaveRoom(io, socket));
     socket.on('startGame', handleStartGame(io, socket));
     socket.on('disconnect', handleDisconnect(io, socket));
+    socket.on('placeCard', handlePlaceCard(io, socket));
+}
+
+function handlePlaceCard(io, socket) {
+    return (placement) => {
+        const idSession = socket.data?.roomId;
+        const playerName = socket.data?.playerName;
+
+        if (!idSession || !playerName) {
+            emitToSocket(io, socket.id, 'error', { message: 'Invalid placeCard payload: missing room or player info' });
+            return;
+        }
+
+        const game = games[idSession];
+        if (!game || !game.board) {
+            emitToSocket(io, socket.id, 'error', { message: 'Game not found' });
+            return;
+        }
+
+        const { card, position } = placement;
+        if (!card || !position || position.x === undefined || position.y === undefined) {
+            emitToSocket(io, socket.id, 'error', { message: 'Invalid placement data' });
+            return;
+        }
+
+        const { x, y } = position;
+        const board = game.board.cells;
+
+        // Validate position is within bounds
+        if (x < 0 || x >= 6 || y < 0 || y >= 6) {
+            emitToSocket(io, socket.id, 'error', { message: 'Position out of bounds' });
+            return;
+        }
+
+        const cellAtPosition = board[x][y];
+
+        // Validate the cell is placable
+        if (!cellAtPosition || (cellAtPosition.type !== 'placableSpot' && cellAtPosition.type !== 'placableCard')) {
+            emitToSocket(io, socket.id, 'error', { message: 'Cell is not placable' });
+            return;
+        }
+
+        // Place the card on the board
+        board[x][y] = {
+            type: 'card',
+            value: card.value,
+            owner: card.owner,
+            color: card.color,
+            isPlacable: false
+        };
+
+        // Remove the card from player's hand
+        const player = game.players.find((p) => p.name === playerName);
+        if (player && player.cards) {
+            const cardIndex = player.cards.findIndex(
+                (c) => c.value === card.value && c.color === card.color
+            );
+            if (cardIndex !== -1) {
+                player.cards.splice(cardIndex, 1);
+            }
+        }
+
+
+
+        // Emit updated game state to all players in the room
+        emitToRoom(io, idSession, 'gameUpdated', game);
+        // Proceed to next player's turn
+        emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+    };
 }
 
 function handleJoinRoom(io, socket) {

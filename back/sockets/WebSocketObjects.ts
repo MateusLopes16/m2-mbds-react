@@ -54,4 +54,5 @@ export interface BoardObject {
 export interface TurnObject {
     card: CardObject;
     game: GameObject;
+    currentPlayerIndex: number;
 }

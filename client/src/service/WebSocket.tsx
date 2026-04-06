@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import type { ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
-import type { CardObject, GameObject, PlayerObject, RoomConnectionObject, TurnObject } from './WebSocketObjects';
+import type { CardObject, GameObject, PlayerObject, RoomConnectionObject, TurnObject, PlacementObject } from './WebSocketObjects';
 import Swal from 'sweetalert2';
 
 
@@ -20,6 +20,7 @@ type WebSocketContextType = {
   leaveRoom: (roomId: string) => void;
   disconnectFromWebSocket: () => void;
   startGame: (roomId: string) => void;
+  placeCard: (placement: PlacementObject) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -114,6 +115,10 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       setCurrentGame(game);
     });
 
+    activeSocket.on('gameUpdated', (game: GameObject) => {
+      setCurrentGame(game);
+    });
+
     activeSocket.on('playerTurn', (turn: TurnObject) => {
       setCurrentGame(turn.game);
       setActivePlayerName(turn.card.owner.name);
@@ -161,6 +166,10 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const placeCard = (placement: PlacementObject) => {
+    emitMessage('placeCard', placement);
+  };
+
   const emitMessage = (eventName: string, payload: unknown) => {
     if (socketRef.current?.connected) {
       socketRef.current?.emit(eventName, payload);
@@ -188,6 +197,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       leaveRoom,
       disconnectFromWebSocket,
       startGame,
+      placeCard,
     }),
     [isConnected, socketId, currentGame, currentPlayerName, activePlayerName, currentCard],
   );
