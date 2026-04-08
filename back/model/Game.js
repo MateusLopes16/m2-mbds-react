@@ -258,4 +258,92 @@ function updateBoardState(game, card) {
     }
 }
 
-module.exports = { initGame, playerTurn };
+function checkWin(game, placedCard) {
+    const board = game.board.cells;
+    const BOARD_SIZE = 6;
+    const cardColor = placedCard.color;
+    
+    // Helper function to check if position is valid
+    const isValidPosition = (row, col) => row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+    
+    // Helper function to check if a cell has a card and matches the color
+    const matchesColor = (row, col) => {
+        if (!isValidPosition(row, col)) return false;
+        const cell = board[row][col];
+        return (cell.type === 'card' || cell.type === 'placableCard') && cell.color === cardColor;
+    };
+    
+    // Check horizontal and vertical lines
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            // Check horizontal (left to right)
+            if (col <= BOARD_SIZE - 4) {
+                if (matchesColor(row, col) && matchesColor(row, col + 1) && 
+                    matchesColor(row, col + 2) && matchesColor(row, col + 3)) {
+                    return true;
+                }
+            }
+            
+            // Check vertical (top to bottom)
+            if (row <= BOARD_SIZE - 4) {
+                if (matchesColor(row, col) && matchesColor(row + 1, col) && 
+                    matchesColor(row + 2, col) && matchesColor(row + 3, col)) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+function removeBestPlacedCardFromPlayer(game, player, winningColor) {
+    const board = game.board.cells;
+    let bestCard = null;
+    let bestPosition = null;
+
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            const cell = board[row][col];
+            // Only consider cards of the winning color owned by this player
+            if ((cell.type === 'card' || cell.type === 'placableCard') && 
+                cell.owner.name === player.name && 
+                cell.color === winningColor) {
+                if (!bestCard || cell.value > bestCard.value) {
+                    bestCard = cell;
+                    bestPosition = { row, col };
+                }
+            }
+        }
+    }
+    if (bestPosition) {
+        board[bestPosition.row][bestPosition.col] = { type: 'unplacableSpot' };
+    }
+}
+
+function resetGameBoard(game) {
+    const board = game.board.cells;
+    
+    // Return all remaining cards on the board to their owners' hands
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            const cell = board[row][col];
+            if ((cell.type === 'card' || cell.type === 'placableCard') && cell.owner) {
+                // Add the card back to the owner's hand
+                cell.owner.cards.push({
+                    value: cell.value,
+                    color: cell.color
+                });
+            }
+        }
+    }
+    
+    // Clear the board
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            board[row][col] = { type: 'unplacableSpot' };
+        }
+    }
+}
+
+module.exports = { initGame, playerTurn, checkWin, removeBestPlacedCardFromPlayer, resetGameBoard };

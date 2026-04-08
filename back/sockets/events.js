@@ -1,6 +1,6 @@
 const games = {};
 const maxPlayersPerRoom = 4;
-const { initGame, playerTurn } = require('../model/Game');
+const { initGame, playerTurn, checkWin, removeBestPlacedCardFromPlayer, resetGameBoard } = require('../model/Game');
 
 function checkPlayerAlreadyInRoom(game, playerName) {
     return game.players.some((player) => player.name === playerName);
@@ -78,11 +78,22 @@ function handlePlaceCard(io, socket) {
         }
 
 
+        if (checkWin(game, board[x][y])) {
+            player.score = (player.score || 0) + 1;
+            emitToRoom(io, idSession, 'playerPoint', game);
+            if (player.score == 2) {
+                emitToRoom(io, idSession, 'gameEnded', game);
+                return;
+            }
+            removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
+            resetGameBoard(game);
+            emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+        } else {
+            emitToRoom(io, idSession, 'gameUpdated', game);
+            emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+        }
 
-        // Emit updated game state to all players in the room
-        emitToRoom(io, idSession, 'gameUpdated', game);
-        // Proceed to next player's turn
-        emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+
     };
 }
 

@@ -119,6 +119,15 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
       setCurrentGame(game);
     });
 
+    activeSocket.on('gameEnded', (game: GameObject) => {
+      setCurrentGame(game);
+      navigate('/leaderboard/' + roomId);
+    });
+
+    activeSocket.on('playerPoint', (game: GameObject) => {
+      setCurrentGame(game);
+    });
+
     activeSocket.on('playerTurn', (turn: TurnObject) => {
       setCurrentGame(turn.game);
       setActivePlayerName(turn.card.owner.name);

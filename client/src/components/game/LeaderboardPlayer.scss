@@ -1,0 +1,131 @@
+$player-colors: (
+    "blue": var(--blue-player-color),
+    "red": var(--red-player-color),
+    "green": var(--green-player-color),
+    "orange": var(--orange-player-color),
+    "gray": var(--gray-player-color)
+);
+
+
+.leaderboard-player {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+
+    &:first-child {
+        border-radius: 15px 15px 0 0;
+    }
+
+    &:last-child {
+        border-radius: 0 0 15px 15px;
+    }
+
+    .placement {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 15px;
+        font-size: 1.3em;
+        background-color: color-mix(var(--gray-player-color) 10%, transparent);
+        color: var(--secondary-text-color);
+
+        &.first {
+            background-color: var(--player-color);
+            color: var(--white-color);
+        }
+
+        @each $name, $value in $player-colors {
+            &.#{$name} {
+                --player-color: #{$value};
+            }
+        }
+    }
+
+
+    .color-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: currentColor;
+
+        @each $name, $value in $player-colors {
+            &.#{$name} {
+                color: #{$value};
+            }
+        }
+    }
+
+    .color-indicators {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: center;
+
+        .color-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: currentColor;
+
+            @each $name, $value in $player-colors {
+                &.#{$name} {
+                    color: #{$value};
+                }
+            }
+        }
+    }
+
+    .player-name {
+        font-size: .8em;
+        font-weight: bold;
+        color: var(--text-color);
+    }
+
+    .score {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        flex-direction: row;
+
+        .point1,
+        .point2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 25px;
+            height: 40px;
+            border-radius: 5px;
+            border: 2px dashed var(--border-color);
+            margin: 2px;
+            background-color: color-mix(var(--card-color) 50%, transparent);
+
+            &.active {
+                background-color: currentColor;
+                border: 2px solid currentColor;
+
+                @each $name, $value in $player-colors {
+                    &.#{$name} {
+                        color: #{$value};
+                    }
+                }
+
+                svg {
+                    color: white;
+                    stroke: white;
+                    width: 20px;
+                    height: 20px;
+                }
+            }
+        }
+    }
+
+}

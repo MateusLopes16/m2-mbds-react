@@ -1,0 +1,141 @@
+$player-colors: (
+    "blue": var(--blue-player-color),
+    "red": var(--red-player-color),
+    "green": var(--green-player-color),
+    "orange": var(--orange-player-color),
+    "gray": var(--gray-player-color)
+);
+
+
+.leaderboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    max-width: 450px;
+    width: 450px;
+    gap: 30px;
+    border-radius: 15px;
+    padding: 20px;
+
+    .header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+
+            .crown {
+                width: 50px;
+                height: 50px;
+                border-radius: 10px;
+                animation: float 2s ease-in-out infinite;
+                color: var(--player-color);
+                position: absolute;
+                top: -35px;
+            }
+
+            .trophy {
+                width: 50px;
+                height: 50px;
+                border-radius: 10px;
+                color: var(--player-color);
+            }
+
+            &.looser {
+                border: 3px solid color-mix(var(--gray-player-color) 30%, transparent);
+                background-color: color-mix(var(--gray-player-color) 10%, transparent);
+            }
+
+            &.winner {
+                border: 4px solid var(--player-color);
+                background-color: color-mix(var(--player-color) 30%, transparent);
+                box-shadow: 0 0 50px var(--player-color);
+            }
+
+            .smiley {
+                width: 50px;
+                height: 50px;
+                border-radius: 10px;
+                color: var(--gray-player-color);
+            }
+
+            @each $name, $value in $player-colors {
+                &.#{$name} {
+                    --player-color: #{$value};
+                }
+            }
+        }
+
+
+        .title {
+            font-size: 2em;
+            color: var(--secondary-text-color);
+            margin-top: 0;
+            font-weight: bold;
+
+            &.winner {
+                color: var(--player-color);
+            }
+
+            @each $name, $value in $player-colors {
+                &.#{$name} {
+                    --player-color: #{$value};
+                }
+            }
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+            color: var(--secondary-text-color);
+            text-align: center;
+        }
+    }
+
+    .content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+
+        .players {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+        }
+    }
+
+    .footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
