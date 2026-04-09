@@ -71,9 +71,8 @@ function logGameObjectForMongo(gameObjectForMongo) {
     console.log(JSON.stringify(gameObjectForMongo, null, 2));
 }
 
-async function persistAndLogGameReplay(game, idSession) {
+async function persistGameReplay(game, idSession) {
     const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
-    logGameObjectForMongo(gameObjectForMongo);
     await upsertJsonObjectBySession(idSession, gameObjectForMongo);
 }
 
@@ -140,35 +139,34 @@ function handlePlaceCard(io, socket) {
         game.replayTimeline = game.replayTimeline || [];
         game.replayTimeline.push(replayTurn);
 
-        // Persist game replay object without blocking game logic on DB errors.
-        try {
-            await persistAndLogGameReplay(game, idSession);
-        } catch (error) {
-            console.error('[replay] Failed to persist game replay:', error.message);
-        }
+        const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
+        logGameObjectForMongo(gameObjectForMongo);
 
 
         if (checkWin(game, board[x][y])) {
             player.score = (player.score || 0) + 1;
             emitToRoom(io, idSession, 'playerPoint', game);
-            if (player.score == 2) {
+
+            if (player.score === 2) {
+                game.winner = player.name;
+                try {
+                    await persistGameReplay(game, idSession);
+                    console.log(`[replay] Final replay saved for session ${idSession} (winner: ${player.name})`);
+                } catch (error) {
+                    console.error('[replay] Failed to save final replay:', error.message);
+                }
                 emitToRoom(io, idSession, 'gameEnded', game);
                 return;
             }
+
             removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
             resetGameBoard(game);
             emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
-        } else {
-            emitToRoom(io, idSession, 'gameUpdated', game);
-            emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+            return;
         }
 
-
-        // Emit updated game state to all players in the room
         emitToRoom(io, idSession, 'gameUpdated', game);
-        // Proceed to next player's turn
-        const nextTurn = playerTurn(game);
-        emitToRoom(io, idSession, 'playerTurn', nextTurn);
+        emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
     };
 }
 
@@ -260,11 +258,6 @@ function handleStartGame(io, socket) {
         games[idSession] = { ...game, ...initializedGame, replayMoveCount: 0, replayTimeline: [] };
 
         const nextTurn = playerTurn(games[idSession]);
-
-        // Persist the initial replay object at game start.
-        persistAndLogGameReplay(games[idSession], idSession).catch((error) => {
-            console.error('[replay] Failed to persist game replay:', error.message);
-        });
 
         emitToRoom(io, idSession, 'gameStarted', games[idSession]);
         emitToRoom(io, idSession, 'playerTurn', nextTurn);
