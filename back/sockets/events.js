@@ -1,6 +1,7 @@
 const games = {};
 const maxPlayersPerRoom = 4;
 const { initGame, playerTurn } = require('../model/Game');
+const { upsertJsonObjectBySession } = require('../mongodb');
 
 function checkPlayerAlreadyInRoom(game, playerName) {
     return game.players.some((player) => player.name === playerName);
@@ -18,8 +19,66 @@ function registerSocketEvents(io, socket) {
     socket.on('placeCard', handlePlaceCard(io, socket));
 }
 
+function sanitizeBoardForReplay(boardCells) {
+    return boardCells.map((row) =>
+        row.map((cell) => {
+            const ownerName = typeof cell.owner === 'object' ? cell.owner?.name : cell.owner;
+            return {
+                type: cell.type,
+                value: cell.value,
+                color: cell.color,
+                owner: ownerName,
+                isPlacable: cell.isPlacable
+            };
+        })
+    );
+}
+
+function buildReplayTurn(game, playerName, card, position) {
+    const moveNumber = (game.replayMoveCount || 0) + 1;
+    game.replayMoveCount = moveNumber;
+
+    return {
+        turn: moveNumber,
+        playerName,
+        playedCard: {
+            value: card.value,
+            color: card.color
+        },
+        position,
+        boardState: sanitizeBoardForReplay(game.board.cells)
+    };
+}
+
+function buildGameReplayObjectForMongo(game, idSession) {
+    return {
+        type: 'gameReplay',
+        sessionId: idSession,
+        replayMoveCount: game.replayMoveCount || 0,
+        currentPlayerIndex: game.currentPlayerIndex,
+        players: game.players.map((player) => ({
+            name: player.name,
+            isHost: !!player.isHost,
+            color: player.color,
+            cardsRemaining: player.cards?.length || 0
+        })),
+        game: game.replayTimeline || []
+    };
+}
+
+function logGameObjectForMongo(gameObjectForMongo) {
+    console.log('[replay] Game object sent to MongoDB (state change):');
+    console.log(JSON.stringify(gameObjectForMongo, null, 2));
+}
+
+async function persistAndLogGameReplay(game, idSession) {
+    const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
+    logGameObjectForMongo(gameObjectForMongo);
+    await upsertJsonObjectBySession(idSession, gameObjectForMongo);
+}
+
 function handlePlaceCard(io, socket) {
-    return (placement) => {
+    return async (placement) => {
         const idSession = socket.data?.roomId;
         const playerName = socket.data?.playerName;
 
@@ -77,12 +136,24 @@ function handlePlaceCard(io, socket) {
             }
         }
 
+        const replayTurn = buildReplayTurn(game, playerName, card, { x, y });
+        game.replayTimeline = game.replayTimeline || [];
+        game.replayTimeline.push(replayTurn);
+
+        // Persist game replay object without blocking game logic on DB errors.
+        try {
+            await persistAndLogGameReplay(game, idSession);
+        } catch (error) {
+            console.error('[replay] Failed to persist game replay:', error.message);
+        }
+
 
 
         // Emit updated game state to all players in the room
         emitToRoom(io, idSession, 'gameUpdated', game);
         // Proceed to next player's turn
-        emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+        const nextTurn = playerTurn(game);
+        emitToRoom(io, idSession, 'playerTurn', nextTurn);
     };
 }
 
@@ -171,10 +242,17 @@ function handleStartGame(io, socket) {
 
         // Initialize game with board and player colors
         const initializedGame = initGame(game.players);
-        games[idSession] = { ...game, ...initializedGame };
+        games[idSession] = { ...game, ...initializedGame, replayMoveCount: 0, replayTimeline: [] };
+
+        const nextTurn = playerTurn(games[idSession]);
+
+        // Persist the initial replay object at game start.
+        persistAndLogGameReplay(games[idSession], idSession).catch((error) => {
+            console.error('[replay] Failed to persist game replay:', error.message);
+        });
 
         emitToRoom(io, idSession, 'gameStarted', games[idSession]);
-        emitToRoom(io, idSession, 'playerTurn', playerTurn(games[idSession]));
+        emitToRoom(io, idSession, 'playerTurn', nextTurn);
     };
 }
 

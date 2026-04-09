@@ -1,31 +1,69 @@
 const mongoose = require('mongoose');
-const router = require('./routes');
-const { corsMiddleware } = require('./middleware');
+const { ReplayEvent } = require('./replayEvent.model');
 
-const path = __dirname + '/';
+const DEFAULT_MONGODB_URI = 'mongodb://root:password@localhost:27017/games?authSource=admin';
 
-// Connexion à MongoDB
-mongoose.connect('mongodb://root:password@localhost:27017/games?authSource=admin')
-    .then(() => {
-        console.log('Connected to MongoDB');
-    })
-    .catch((error) => {
-        console.error('Error connecting to MongoDB:', error.message);
-        process.exit(1);
-    });
+async function initMongooseConnection() {
+    if (mongoose.connection.readyState === 1) {
+        return mongoose.connection;
+    }
 
-app.use(express.json());
-app.use(corsMiddleware);
+    const mongoUri = process.env.MONGODB_URI || DEFAULT_MONGODB_URI;
+    await mongoose.connect(mongoUri);
+    console.log('[mongodb] Connected');
+    return mongoose.connection;
+}
 
-app.use('/', router);
+function isJsonObject(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
-const api = require(path + './api');
-app.use('/api', api);
+/**
+ * Generic persistence helper for backend-only JSON payloads.
+ * @param {Object} jsonObject
+ * @returns {Promise<Object>}
+ */
+async function saveJsonObject(jsonObject) {
+    if (!isJsonObject(jsonObject)) {
+        throw new Error('saveJsonObject expects a JSON object');
+    }
 
-const { errorHandler } = require('./middleware');
-app.use(errorHandler);
+    if (mongoose.connection.readyState !== 1) {
+        await initMongooseConnection();
+    }
 
-const port = 8085;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+    return ReplayEvent.create(jsonObject);
+}
+
+/**
+ * Upserts a replay document by sessionId so a whole game timeline
+ * is stored in a single JSON object.
+ * @param {string} sessionId
+ * @param {Object} jsonObject
+ * @returns {Promise<Object>}
+ */
+async function upsertJsonObjectBySession(sessionId, jsonObject) {
+    if (!sessionId || typeof sessionId !== 'string') {
+        throw new Error('upsertJsonObjectBySession expects a valid sessionId');
+    }
+
+    if (!isJsonObject(jsonObject)) {
+        throw new Error('upsertJsonObjectBySession expects a JSON object');
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+        await initMongooseConnection();
+    }
+
+    return ReplayEvent.findOneAndUpdate(
+        { type: 'gameReplay', sessionId },
+        { $set: jsonObject },
+        { upsert: true, returnDocument: 'after' }
+    );
+}
+
+module.exports = {
+    initMongooseConnection,
+    saveJsonObject,
+    upsertJsonObjectBySession
+};
