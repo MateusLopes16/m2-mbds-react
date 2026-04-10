@@ -1,0 +1,54 @@
+$player-colors: (
+    "blue": var(--blue-player-color),
+    "red": var(--red-player-color),
+    "green": var(--green-player-color),
+    "orange": var(--orange-player-color),
+    "gray": var(--gray-player-color)
+);
+
+.player-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: currentColor;
+    position: relative;
+
+    span {
+        color: #fff;
+    }
+
+    .trophy {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        width: 15px;
+        height: 15px;
+        background-color: gold;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: var(--background-color);
+
+        svg {
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    @each $name, $value in $player-colors {
+            &.#{$name} {
+                color: #{$value};
+            }
+        }
+}

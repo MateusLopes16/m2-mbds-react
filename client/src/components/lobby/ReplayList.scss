@@ -1,0 +1,79 @@
+.replay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(var(--primary-color) 45%, var(--replay-scrollbar-thumb-fallback)) color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+
+    /* Chromium / WebKit */
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+        border-radius: 999px;
+        border: 1px solid color-mix(var(--border-color) 65%, transparent);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+            180deg,
+            color-mix(var(--primary-color) 55%, var(--replay-scrollbar-thumb-start-fallback)) 0%,
+            color-mix(var(--primary-color) 35%, var(--replay-scrollbar-thumb-end-fallback)) 100%
+        );
+        border-radius: 999px;
+        border: 2px solid color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(
+            180deg,
+            color-mix(var(--primary-color) 68%, var(--replay-scrollbar-thumb-hover-start-fallback)) 0%,
+            color-mix(var(--primary-color) 45%, var(--replay-scrollbar-thumb-hover-end-fallback)) 100%
+        );
+    }
+}
+
+.replay-row {
+    max-height: 180px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: max-height 0.26s ease, opacity 0.2s ease, transform 0.26s ease, margin 0.26s ease;
+
+    &.hidden {
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-8px);
+        margin: 0;
+        pointer-events: none;
+    }
+}
+
+.replay-list-empty {
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    color: var(--secondary-text-color);
+    border: 1px dashed var(--border-color);
+    background-color: color-mix(var(--input-color) 70%, transparent);
+    animation: replay-empty-fade 0.22s ease;
+}
+
+@keyframes replay-empty-fade {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

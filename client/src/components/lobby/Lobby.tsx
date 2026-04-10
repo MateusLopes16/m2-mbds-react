@@ -1,13 +1,20 @@
 import './Lobby.scss';
 import { useState } from 'react';
 import { useWebSocket } from '../../service/WebSocket';
+import ReplayList from './ReplayList';
 
 const MAX_PLAYER_NAME_LENGTH = 8;
+
+interface ReplayItem {
+    id: number;
+    name: string;
+}
 
 function Lobby() {
     const [activeTab, setActiveTab] = useState('');
     const [gameId, setGameId] = useState('');
     const [playerName, setPlayerName] = useState('');
+    const [selectedReplayId, setSelectedReplayId] = useState<number | null>(null);
     const { connectToWebSocket } = useWebSocket();
 
     const handleCreateGame = () => {
@@ -24,6 +31,16 @@ function Lobby() {
 
         connectToWebSocket(trimmedGameId, trimmedName);
     }
+
+    const handleReplayInputChange = (value: string) => {
+        setGameId(value.toUpperCase());
+        setSelectedReplayId(null);
+    };
+
+    const handleSelectReplay = (replay: ReplayItem) => {
+        setSelectedReplayId(replay.id);
+        setGameId(replay.name);
+    };
 
     return (
         <div className="lobby">
@@ -51,11 +68,15 @@ function Lobby() {
                     <div className="options-container">
                         <div className={`create options ${activeTab === 'create' ? 'selected' : ''}`} onClick={() => setActiveTab('create')}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-                            <span>Créer une partie</span>
+                            <span>Créer</span>
                         </div>
                         <div className={`join options ${activeTab === 'join' ? 'selected' : ''}`} onClick={() => setActiveTab('join')}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m10 17 5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg>
-                            <span>Rejoindre une partie</span>
+                            <span>Rejoindre</span>
+                        </div>
+                        <div className={`replay options ${activeTab === 'replay' ? 'selected' : ''}`} onClick={() => setActiveTab('replay')}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M7 3v18"></path><path d="M3 7.5h4"></path><path d="M3 12h18"></path><path d="M3 16.5h4"></path><path d="M17 3v18"></path><path d="M17 7.5h4"></path><path d="M17 16.5h4"></path></svg>
+                            <span>Revoir</span>
                         </div>
                     </div>
                 </div>
@@ -73,7 +94,21 @@ function Lobby() {
                         <div className="input-container">
                             <input type="text" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => setGameId(e.target.value.toUpperCase())} />
                         </div>
-                        <button className="full-button" disabled={!playerName && !gameId} onClick={handleJoinGame}>Rejoindre la partie</button>
+                        <button className="full-button" disabled={!playerName || !gameId} onClick={handleJoinGame}>Rejoindre la partie</button>
+                    </div>
+                )}
+                {activeTab === "replay" && (
+                    <div className="footer">
+                        <label className="id-label" htmlFor="gameId">Game ID</label>
+                        <div className="input-container">
+                            <input type="text" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => handleReplayInputChange(e.target.value)} />
+                        </div>
+                        <ReplayList
+                            gameIdFilter={gameId}
+                            selectedReplayId={selectedReplayId}
+                            onSelectReplay={handleSelectReplay}
+                        />
+                        <button className="full-button" disabled={!selectedReplayId} onClick={handleJoinGame}>Revoir la partie</button>
                     </div>
                 )}
                 {!activeTab && (

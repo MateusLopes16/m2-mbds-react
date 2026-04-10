@@ -11,6 +11,7 @@ function App() {
       <Route path="/" element={<Lobby />} />
       <Route path="/lobby/:id" element={<Waiting />} />
       <Route path="/Game/:id" element={<Game />} />
+      <Route path="/replay/:id" element={<Game />} />
       <Route path="/leaderboard/:id" element={<Leaderboard />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

@@ -30,12 +30,12 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
   const [socketId, setSocketId] = useState<string | null>(null);
   const [currentGame, setCurrentGame] = useState<GameObject | null>(null);
   const [currentPlayerName, setCurrentPlayerName] = useState('');
-  const [currentPlayerColor, setCurrentPlayerColor] = useState('');
+  const [, setCurrentPlayerColor] = useState('');
   const [activePlayerName, setActivePlayerName] = useState<string | null>(null);
   const [currentCard, setCurrentCard] = useState<CardObject | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const navigate = useNavigate();
-  const [players, setPlayers] = useState<PlayerObject[]>([]);
+  const [, setPlayers] = useState<PlayerObject[]>([]);
 
   //get or create a socket connection
   const getOrCreateSocket = (roomId: string, playerName: string): Socket => {
