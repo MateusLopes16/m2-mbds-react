@@ -1,20 +1,17 @@
 import './Lobby.scss';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWebSocket } from '../../service/WebSocket';
-import ReplayList from './ReplayList';
+import ReplayList, { type ReplayItem } from './ReplayList';
 
 const MAX_PLAYER_NAME_LENGTH = 8;
 
-interface ReplayItem {
-    id: number;
-    name: string;
-}
-
 function Lobby() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('');
     const [gameId, setGameId] = useState('');
     const [playerName, setPlayerName] = useState('');
-    const [selectedReplayId, setSelectedReplayId] = useState<number | null>(null);
+    const [selectedReplayId, setSelectedReplayId] = useState<string | null>(null);
     const { connectToWebSocket } = useWebSocket();
 
     const handleCreateGame = () => {
@@ -41,6 +38,13 @@ function Lobby() {
         setSelectedReplayId(replay.id);
         setGameId(replay.name);
     };
+
+    const handleWatchReplay = () => {
+        const trimmedGameId = gameId.trim().toUpperCase();
+        if (!trimmedGameId) return;
+
+        navigate('/replay/' + trimmedGameId);
+    }
 
     return (
         <div className="lobby">
@@ -108,7 +112,7 @@ function Lobby() {
                             selectedReplayId={selectedReplayId}
                             onSelectReplay={handleSelectReplay}
                         />
-                        <button className="full-button" disabled={!selectedReplayId} onClick={handleJoinGame}>Revoir la partie</button>
+                        <button className="full-button" disabled={!selectedReplayId} onClick={handleWatchReplay}>Revoir la partie</button>
                     </div>
                 )}
                 {!activeTab && (

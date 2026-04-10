@@ -62,8 +62,33 @@ async function upsertJsonObjectBySession(sessionId, jsonObject) {
     );
 }
 
+async function getReplayBySession(sessionId) {
+    if (!sessionId || typeof sessionId !== 'string') {
+        throw new Error('getReplayBySession expects a valid sessionId');
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+        await initMongooseConnection();
+    }
+
+    return ReplayEvent.findOne({ type: 'gameReplay', sessionId }).sort({ updatedAt: -1 }).lean();
+}
+
+async function getReplaySummaries() {
+    if (mongoose.connection.readyState !== 1) {
+        await initMongooseConnection();
+    }
+
+    return ReplayEvent.find({ type: 'gameReplay' })
+        .sort({ updatedAt: -1 })
+        .select('sessionId players replayMoveCount winner updatedAt createdAt')
+        .lean();
+}
+
 module.exports = {
     initMongooseConnection,
     saveJsonObject,
-    upsertJsonObjectBySession
+    upsertJsonObjectBySession,
+    getReplayBySession,
+    getReplaySummaries
 };

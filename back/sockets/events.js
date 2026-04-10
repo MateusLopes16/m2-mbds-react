@@ -54,6 +54,7 @@ function buildGameReplayObjectForMongo(game, idSession) {
     return {
         type: 'gameReplay',
         sessionId: idSession,
+        winner: game.winner || null,
         replayMoveCount: game.replayMoveCount || 0,
         currentPlayerIndex: game.currentPlayerIndex,
         players: game.players.map((player) => ({
@@ -64,11 +65,6 @@ function buildGameReplayObjectForMongo(game, idSession) {
         })),
         game: game.replayTimeline || []
     };
-}
-
-function logGameObjectForMongo(gameObjectForMongo) {
-    console.log('[replay] Game object sent to MongoDB (state change):');
-    console.log(JSON.stringify(gameObjectForMongo, null, 2));
 }
 
 async function persistGameReplay(game, idSession) {
@@ -140,7 +136,6 @@ function handlePlaceCard(io, socket) {
         game.replayTimeline.push(replayTurn);
 
         const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
-        logGameObjectForMongo(gameObjectForMongo);
 
 
         if (checkWin(game, board[x][y])) {
