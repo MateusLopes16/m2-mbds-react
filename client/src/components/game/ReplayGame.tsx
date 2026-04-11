@@ -27,7 +27,7 @@ type ReplayPayload = {
     game: ReplayTurn[];
 }
 
-const API_URL = 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_SOCKETSERVERURL || 'http://localhost:3000';
 
 function ReplayGame() {
     const { id } = useParams()

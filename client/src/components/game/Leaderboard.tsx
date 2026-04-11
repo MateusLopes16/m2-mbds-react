@@ -3,7 +3,6 @@ import { useWebSocket } from '../../service/WebSocket'
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import LeaderboardPlayer from './LeaderboardPlayer';
-import type { GameObject } from '../../service/WebSocketObjects';
 
 function Leaderboard() {
     const { currentGame, currentPlayerName, disconnectFromWebSocket } = useWebSocket()

@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const { ReplayEvent } = require('./replayEvent.model');
+const dotenv = require('dotenv');
 
-const DEFAULT_MONGODB_URI = 'mongodb://root:password@localhost:27017/games?authSource=admin';
+dotenv.config();
+
+const DEFAULT_MONGODB_URI = process.env.DEFAULT_MONGODB_URI;
 
 async function initMongooseConnection() {
     if (mongoose.connection.readyState === 1) {

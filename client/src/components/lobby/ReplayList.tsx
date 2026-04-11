@@ -23,13 +23,15 @@ function ReplayList({ gameIdFilter, selectedReplayId, onSelectReplay }: ReplayLi
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const API_URL = import.meta.env.VITE_SOCKETSERVERURL || 'http://localhost:3000';
+
     useEffect(() => {
         const fetchReplays = async () => {
             try {
                 setIsLoading(true);
                 setError(null);
 
-                const response = await fetch('http://localhost:3000/replays');
+                const response = await fetch(`${API_URL}/replays`);
                 if (!response.ok) {
                     throw new Error('Failed to load replays');
                 }

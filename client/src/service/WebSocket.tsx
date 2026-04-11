@@ -6,7 +6,7 @@ import type { CardObject, GameObject, PlayerObject, RoomConnectionObject, TurnOb
 import Swal from 'sweetalert2';
 
 
-const SOCKETSERVERURL = 'http://localhost:3000';
+const SOCKETSERVERURL = import.meta.env.VITE_SOCKETSERVERURL;
 
 type WebSocketContextType = {
   socket: Socket | null;
