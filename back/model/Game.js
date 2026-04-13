@@ -1,4 +1,5 @@
 const BOARD_SIZE = 6;
+const colors = ['red', 'blue', 'green', 'orange'];
 
 /**
  * Creates an empty 6x6 board filled with unplacable spots
@@ -55,8 +56,6 @@ function initGame(players) {
  * @param {Array<Object>} players - Array of player objects to assign colors to
  */
 function giveColorToPlayers(players) {
-    const colors = ['red', 'blue', 'green', 'orange'];
-
     // Shuffle colors
     for (let i = colors.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -64,16 +63,15 @@ function giveColorToPlayers(players) {
     }
 
     const numPlayers = players.length;
-
     if (numPlayers === 2) {
         // Each player receives 2 colors
         players[0].color = [colors[0], colors[1]];
         players[1].color = [colors[2], colors[3]];
     } else if (numPlayers === 3) {
         // Each player receives 1 color, last color unassigned
-        players[0].color = [colors[0]];
-        players[1].color = [colors[1]];
-        players[2].color = [colors[2]];
+        players[0].color = [colors[0], colors[3]];
+        players[1].color = [colors[1], colors[3]];
+        players[2].color = [colors[2], colors[3]];
         // colors[3] is unassigned
     } else if (numPlayers === 4) {
         // Each player receives 1 color
@@ -84,7 +82,6 @@ function giveColorToPlayers(players) {
 }
 
 function giveCardsToPlayers(players) {
-    const colors = ['red', 'blue', 'green', 'orange'];
     const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const numPlayers = players.length;
 
@@ -108,14 +105,19 @@ function giveCardsToPlayers(players) {
             });
         });
     } else if (numPlayers === 3) {
+        let assignedColors = players.map(p => p.color[0]);
+        let unassignedColors = colors.filter(c => !assignedColors.includes(c));
+        const sharedColor = unassignedColors[0];
+
         // 3 players: each gets 2 of each value for their main color
         // Shared color (colors[3]) cards are shuffled among all players
         players.forEach((player) => {
+            const playerColorNotShared = player.color.find(c => c !== sharedColor);
             values.forEach((value) => {
                 for (let i = 0; i < 2; i++) {
                     player.cards.push({
                         value: value,
-                        color: player.color[0]
+                        color: playerColorNotShared
                     });
                 }
             });
@@ -127,7 +129,7 @@ function giveCardsToPlayers(players) {
             for (let i = 0; i < 2; i++) {
                 sharedColorCards.push({
                     value: value,
-                    color: colors[3]
+                    color: sharedColor
                 });
             }
         });
@@ -155,6 +157,10 @@ function giveCardsToPlayers(players) {
                 }
             });
         });
+    }
+    console.log('Players after card distribution:', players);
+    for (const player of players) {
+        console.log(`Player ${player.name} has ${player.cards.length} cards:`, player.cards);
     }
 }
 
@@ -262,38 +268,38 @@ function checkWin(game, placedCard) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
     const cardColor = placedCard.color;
-    
+
     // Helper function to check if position is valid
     const isValidPosition = (row, col) => row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
-    
+
     // Helper function to check if a cell has a card and matches the color
     const matchesColor = (row, col) => {
         if (!isValidPosition(row, col)) return false;
         const cell = board[row][col];
         return (cell.type === 'card' || cell.type === 'placableCard') && cell.color === cardColor;
     };
-    
+
     // Check horizontal and vertical lines
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             // Check horizontal (left to right)
             if (col <= BOARD_SIZE - 4) {
-                if (matchesColor(row, col) && matchesColor(row, col + 1) && 
+                if (matchesColor(row, col) && matchesColor(row, col + 1) &&
                     matchesColor(row, col + 2) && matchesColor(row, col + 3)) {
                     return true;
                 }
             }
-            
+
             // Check vertical (top to bottom)
             if (row <= BOARD_SIZE - 4) {
-                if (matchesColor(row, col) && matchesColor(row + 1, col) && 
+                if (matchesColor(row, col) && matchesColor(row + 1, col) &&
                     matchesColor(row + 2, col) && matchesColor(row + 3, col)) {
                     return true;
                 }
             }
         }
     }
-    
+
     return false;
 }
 
@@ -306,8 +312,8 @@ function removeBestPlacedCardFromPlayer(game, player, winningColor) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = board[row][col];
             // Only consider cards of the winning color owned by this player
-            if ((cell.type === 'card' || cell.type === 'placableCard') && 
-                cell.owner.name === player.name && 
+            if ((cell.type === 'card' || cell.type === 'placableCard') &&
+                cell.owner.name === player.name &&
                 cell.color === winningColor) {
                 if (!bestCard || cell.value > bestCard.value) {
                     bestCard = cell;
@@ -323,22 +329,26 @@ function removeBestPlacedCardFromPlayer(game, player, winningColor) {
 
 function resetGameBoard(game) {
     const board = game.board.cells;
-    
+
     // Return all remaining cards on the board to their owners' hands
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = board[row][col];
             if ((cell.type === 'card' || cell.type === 'placableCard') && cell.owner) {
+                console.log(`Returning card ${cell.value} of color ${cell.color} to player ${cell.owner.name}'s hand.`);
                 // Add the card back to the owner's hand
-                cell.owner.cards.push({
-                    value: cell.value,
-                    color: cell.color
-                });
+                const owner = game.players.find((p) => p.name === cell.owner.name);
+                if (owner) {
+                    owner.cards.push({
+                        value: cell.value,
+                        color: cell.color
+                    });
+                }
             }
         }
     }
-    
-    // Clear the board
+
+    // Clear the board only after every card was returned
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             board[row][col] = { type: 'unplacableSpot' };

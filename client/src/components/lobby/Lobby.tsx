@@ -63,6 +63,7 @@ function Lobby() {
                         <input
                             type="text"
                             id="playerName"
+                            autoComplete="off"
                             placeholder="Entrez votre nom"
                             value={playerName}
                             maxLength={MAX_PLAYER_NAME_LENGTH}
@@ -96,7 +97,7 @@ function Lobby() {
                     <div className="footer">
                         <label className="id-label" htmlFor="gameId">Game ID</label>
                         <div className="input-container">
-                            <input type="text" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => setGameId(e.target.value.toUpperCase())} />
+                            <input type="text" autoComplete="off" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => setGameId(e.target.value.toUpperCase())} />
                         </div>
                         <button className="full-button" disabled={!playerName || !gameId} onClick={handleJoinGame}>Rejoindre la partie</button>
                     </div>
@@ -105,7 +106,7 @@ function Lobby() {
                     <div className="footer">
                         <label className="id-label" htmlFor="gameId">Game ID</label>
                         <div className="input-container">
-                            <input type="text" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => handleReplayInputChange(e.target.value)} />
+                            <input type="text" autoComplete="off" autoCapitalize="on" id="gameId" placeholder="Entrez le Game ID" value={gameId} onChange={(e) => handleReplayInputChange(e.target.value)} />
                         </div>
                         <ReplayList
                             gameIdFilter={gameId}

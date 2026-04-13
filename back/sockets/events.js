@@ -109,6 +109,15 @@ function handlePlaceCard(io, socket) {
         if (!cellAtPosition || (cellAtPosition.type !== 'placableSpot' && cellAtPosition.type !== 'placableCard')) {
             emitToSocket(io, socket.id, 'error', { message: 'Cell is not placable' });
             return;
+        } else if (cellAtPosition.type === 'placableCard' && cellAtPosition.color === card.color) {
+            emitToSocket(io, socket.id, 'error', { message: 'Cannot place on top of a card of the same color' });
+            return;
+        } else if ((cellAtPosition.type === 'placableCard' || cellAtPosition.type === 'card') && cellAtPosition.color !== card.color) {
+            // If placing on top of an opponent's card, return it to their hand
+            const opponentPlayer = game.players.find((p) => p.name === cellAtPosition.owner.name);
+            if (opponentPlayer) {
+                opponentPlayer.cards.push(cellAtPosition);
+            }
         }
 
         // Place the card on the board
@@ -135,7 +144,7 @@ function handlePlaceCard(io, socket) {
         game.replayTimeline = game.replayTimeline || [];
         game.replayTimeline.push(replayTurn);
 
-        const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
+        buildGameReplayObjectForMongo(game, idSession);
 
 
         if (checkWin(game, board[x][y])) {
@@ -156,6 +165,11 @@ function handlePlaceCard(io, socket) {
 
             removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
             resetGameBoard(game);
+            console.log(`[game] Player ${player.name} scored a point in session ${idSession}. Current score: ${player.score}`);
+            for (const player of game.players) {
+                console.log(`Player ${player.name} has ${player.cards.length} cards remaining.`);
+            }
+
             emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
             return;
         }
