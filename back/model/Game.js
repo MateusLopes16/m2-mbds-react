@@ -267,33 +267,45 @@ function updateBoardState(game, card) {
 function checkWin(game, placedCard) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
+    const WIN_LENGTH = 4;
     const cardColor = placedCard.color;
-
-    // Helper function to check if position is valid
-    const isValidPosition = (row, col) => row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
 
     // Helper function to check if a cell has a card and matches the color
     const matchesColor = (row, col) => {
-        if (!isValidPosition(row, col)) return false;
         const cell = board[row][col];
         return (cell.type === 'card' || cell.type === 'placableCard') && cell.color === cardColor;
     };
 
-    // Check horizontal and vertical lines
+    // Directions: horizontal, vertical, diagonal down-right, diagonal down-left
+    const directions = [
+        [0, 1],
+        [1, 0],
+        [1, 1],
+        [1, -1]
+    ];
+
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
-            // Check horizontal (left to right)
-            if (col <= BOARD_SIZE - 4) {
-                if (matchesColor(row, col) && matchesColor(row, col + 1) &&
-                    matchesColor(row, col + 2) && matchesColor(row, col + 3)) {
-                    return true;
-                }
-            }
+            for (const [dRow, dCol] of directions) {
+                const endRow = row + (WIN_LENGTH - 1) * dRow;
+                const endCol = col + (WIN_LENGTH - 1) * dCol;
 
-            // Check vertical (top to bottom)
-            if (row <= BOARD_SIZE - 4) {
-                if (matchesColor(row, col) && matchesColor(row + 1, col) &&
-                    matchesColor(row + 2, col) && matchesColor(row + 3, col)) {
+                // Skip directions that would go out of bounds from this start cell
+                if (endRow < 0 || endRow >= BOARD_SIZE || endCol < 0 || endCol >= BOARD_SIZE) {
+                    continue;
+                }
+
+                let aligned = true;
+                for (let step = 0; step < WIN_LENGTH; step++) {
+                    const currentRow = row + step * dRow;
+                    const currentCol = col + step * dCol;
+                    if (!matchesColor(currentRow, currentCol)) {
+                        aligned = false;
+                        break;
+                    }
+                }
+
+                if (aligned) {
                     return true;
                 }
             }
