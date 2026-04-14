@@ -48,41 +48,34 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
         return null;
     };
 
-    const renderPlayerSpot = (playerIndex: number) => {
+    const renderPlayerSpot = (playerIndex: number): ReactNode => {
         const player = getPlayerAtPosition(playerIndex);
 
-        if (player) {
-            const cardValue = player.active && currentCard ? currentCard.value : '';
-            return (
-                <Player
-                    key={player.name}
-                    name={player.name}
-                    color={player.color}
-                    vertical={playerIndex === 1 || playerIndex === 2}
-                    active={player.active}
-                    point1={player.point1}
-                    point2={player.point2}
-                    currentCard={cardValue}
-                    activeCardColor={player.active && currentCard ? currentCard.color : undefined}
-                    isPlayingActive={!!activePlayerName}
-                />
-            );
+        if (!player) {
+            return null;
         }
 
+        const cardValue = player.active && currentCard ? currentCard.value : '';
         return (
             <Player
-                key={`empty-${playerIndex}`}
-                name="Empty Spot"
-                color="gray"
+                key={player.name}
+                name={player.name}
+                color={player.color}
                 vertical={playerIndex === 1 || playerIndex === 2}
-                active={false}
-                point1={false}
-                point2={false}
-                currentCard=""
+                active={player.active}
+                point1={player.point1}
+                point2={player.point2}
+                currentCard={cardValue}
+                activeCardColor={player.active && currentCard ? currentCard.color : undefined}
                 isPlayingActive={!!activePlayerName}
             />
         );
     };
+
+    const topPlayer = renderPlayerSpot(0);
+    const leftPlayer = renderPlayerSpot(1);
+    const rightPlayer = renderPlayerSpot(2);
+    const bottomPlayer = renderPlayerSpot(3);
 
     const handleCellClick = (x: number, y: number) => {
         if (!currentCard) {
@@ -99,21 +92,17 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
 
     return (
         <div className="game-container">
-            <div className="top">
-                {renderPlayerSpot(0)}
-            </div>
+            {topPlayer && <div className="top">{topPlayer}</div>}
             <div className="center">
-                {renderPlayerSpot(1)}
+                {leftPlayer}
                 <div className="board-shell">
                     {leftBoardControl && <div className="board-nav">{leftBoardControl}</div>}
                     <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} lastPlacedPosition={lastPlacedPosition} onCellClick={handleCellClick} />
                     {rightBoardControl && <div className="board-nav">{rightBoardControl}</div>}
                 </div>
-                {renderPlayerSpot(2)}
+                {rightPlayer}
             </div>
-            <div className="bottom">
-                {renderPlayerSpot(3)}
-            </div>
+            {bottomPlayer && <div className="bottom">{bottomPlayer}</div>}
         </div>
     )
 }
