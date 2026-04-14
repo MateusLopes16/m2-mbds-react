@@ -217,8 +217,8 @@ function playerTurn(game) {
  * Recomputes board state after considering a candidate card:
  * - Initializes center placable spots on an empty board
  * - Clears previous placable indicators
- * - Marks adjacent empty cells as placable spots
- * - Marks lower-value opponent cards as placable targets
+ * - Marks adjacent empty cells (orthogonal and diagonal) as placable spots
+ * - Marks lower-value cards as placable targets
  *
  * @param {Object} game - Current game state containing board cells
  * @param {Object} card - Candidate card to evaluate placements for
@@ -262,14 +262,23 @@ function updateBoardState(game, card) {
         }
     }
 
-    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const directions = [
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1],
+        [-1, -1],
+        [-1, 1],
+        [1, -1],
+        [1, 1]
+    ];
 
     // For each cell on the board
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = board[row][col];
 
-            if (hasCard(cell) && cell.color !== card.color && cell.value < card.value) {
+            if (hasCard(cell) && cell.value < card.value) {
                 board[row][col] = {
                     type: 'placableCard',
                     value: cell.value,

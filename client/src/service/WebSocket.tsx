@@ -281,6 +281,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
                 },
             });
             disconnectFromWebSocket();
+            navigate("/home");
         });
     };
 
