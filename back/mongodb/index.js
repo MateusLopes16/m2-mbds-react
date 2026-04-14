@@ -6,6 +6,12 @@ dotenv.config();
 
 const DEFAULT_MONGODB_URI = process.env.DEFAULT_MONGODB_URI;
 
+/**
+ * Initializes a mongoose connection if one is not already active.
+ *
+ * Uses MONGODB_URI when available, otherwise falls back to DEFAULT_MONGODB_URI.
+ * @returns {Promise<import('mongoose').Connection>} Active mongoose connection
+ */
 async function initMongooseConnection() {
     if (mongoose.connection.readyState === 1) {
         return mongoose.connection;
@@ -17,6 +23,12 @@ async function initMongooseConnection() {
     return mongoose.connection;
 }
 
+/**
+ * Checks whether a value is a plain JSON-like object (non-null, non-array).
+ *
+ * @param {any} value - Value to validate
+ * @returns {boolean} True when value is an object and not an array
+ */
 function isJsonObject(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -65,6 +77,12 @@ async function upsertJsonObjectBySession(sessionId, jsonObject) {
     );
 }
 
+/**
+ * Retrieves the latest replay document for a given session.
+ *
+ * @param {string} sessionId - Session identifier
+ * @returns {Promise<Object|null>} Replay object or null if not found
+ */
 async function getReplayBySession(sessionId) {
     if (!sessionId || typeof sessionId !== 'string') {
         throw new Error('getReplayBySession expects a valid sessionId');
@@ -77,6 +95,11 @@ async function getReplayBySession(sessionId) {
     return ReplayEvent.findOne({ type: 'gameReplay', sessionId }).sort({ updatedAt: -1 }).lean();
 }
 
+/**
+ * Lists replay summaries for all sessions, ordered by most recent updates.
+ *
+ * @returns {Promise<Array<Object>>} Lightweight replay summary documents
+ */
 async function getReplaySummaries() {
     if (mongoose.connection.readyState !== 1) {
         await initMongooseConnection();

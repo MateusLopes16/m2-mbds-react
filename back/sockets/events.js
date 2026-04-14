@@ -3,14 +3,33 @@ const maxPlayersPerRoom = 4;
 const { initGame, playerTurn, checkWin, removeBestPlacedCardFromPlayer, resetGameBoard } = require('../model/Game');
 const { upsertJsonObjectBySession } = require('../mongodb');
 
+/**
+ * Checks whether a player name is already present in a room.
+ *
+ * @param {Object} game - Room/game object containing players
+ * @param {string} playerName - Player name to validate
+ * @returns {boolean} True if player name already exists in the room
+ */
 function checkPlayerAlreadyInRoom(game, playerName) {
     return game.players.some((player) => player.name === playerName);
 }
 
+/**
+ * Generates a short uppercase session identifier.
+ *
+ * @returns {string} A 6-character room/session id
+ */
 function createUniqueIdSession() {
     return Math.random().toString(36).substr(2, 6).toUpperCase();
 }
 
+/**
+ * Registers all socket event handlers for a client connection.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {void}
+ */
 function registerSocketEvents(io, socket) {
     socket.on('joinRoom', handleJoinRoom(io, socket));
     socket.on('leaveRoom', handleLeaveRoom(io, socket));
@@ -19,6 +38,12 @@ function registerSocketEvents(io, socket) {
     socket.on('placeCard', handlePlaceCard(io, socket));
 }
 
+/**
+ * Sanitizes board cells for replay persistence by normalizing owner values.
+ *
+ * @param {Array<Array<Object>>} boardCells - Current board cell matrix
+ * @returns {Array<Array<Object>>} Serializable board matrix for replay history
+ */
 function sanitizeBoardForReplay(boardCells) {
     return boardCells.map((row) =>
         row.map((cell) => {
@@ -34,6 +59,15 @@ function sanitizeBoardForReplay(boardCells) {
     );
 }
 
+/**
+ * Builds a replay entry for a played turn and increments move counter.
+ *
+ * @param {Object} game - Current game state
+ * @param {string} playerName - Name of the player who played
+ * @param {Object} card - Card that was played
+ * @param {{x: number, y: number}} position - Board position where card was placed
+ * @returns {Object} Replay turn object
+ */
 function buildReplayTurn(game, playerName, card, position) {
     const moveNumber = (game.replayMoveCount || 0) + 1;
     game.replayMoveCount = moveNumber;
@@ -50,6 +84,13 @@ function buildReplayTurn(game, playerName, card, position) {
     };
 }
 
+/**
+ * Creates the replay payload stored in MongoDB for a session.
+ *
+ * @param {Object} game - Current game state
+ * @param {string} idSession - Session identifier
+ * @returns {Object} Mongo-ready replay object
+ */
 function buildGameReplayObjectForMongo(game, idSession) {
     return {
         type: 'gameReplay',
@@ -67,11 +108,27 @@ function buildGameReplayObjectForMongo(game, idSession) {
     };
 }
 
+/**
+ * Persists the current replay object for a session to MongoDB.
+ *
+ * @param {Object} game - Current game state
+ * @param {string} idSession - Session identifier
+ * @returns {Promise<void>}
+ */
 async function persistGameReplay(game, idSession) {
     const gameObjectForMongo = buildGameReplayObjectForMongo(game, idSession);
     await upsertJsonObjectBySession(idSession, gameObjectForMongo);
 }
 
+/**
+ * Creates the placeCard event handler for a socket.
+ * Validates placement, updates board and player hand, persists replay data,
+ * and emits game progression events.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {(placement: Object) => Promise<void>} Async placeCard handler
+ */
 function handlePlaceCard(io, socket) {
     return async (placement) => {
         const idSession = socket.data?.roomId;
@@ -179,6 +236,14 @@ function handlePlaceCard(io, socket) {
     };
 }
 
+/**
+ * Creates the joinRoom event handler for a socket.
+ * Handles room creation, capacity checks, player registration, and broadcasts.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {(room: Object) => Promise<void>} Async joinRoom handler
+ */
 function handleJoinRoom(io, socket) {
     return async (room) => {
         let idSession = room?.id;
@@ -222,6 +287,13 @@ function handleJoinRoom(io, socket) {
     };
 }
 
+/**
+ * Creates the leaveRoom event handler for a socket.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {(payload: Object) => void} leaveRoom handler
+ */
 function handleLeaveRoom(io, socket) {
     return (payload) => {
         const idSession = payload?.id ?? socket.data?.roomId;
@@ -241,6 +313,14 @@ function handleLeaveRoom(io, socket) {
     };
 }
 
+/**
+ * Creates the startGame event handler for a socket.
+ * Validates host permissions, initializes game state, and emits first turn.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {(payload: Object) => void} startGame handler
+ */
 function handleStartGame(io, socket) {
     return (payload) => {
         const idSession = payload?.id;
@@ -273,6 +353,14 @@ function handleStartGame(io, socket) {
     };
 }
 
+/**
+ * Creates the disconnect event handler for a socket.
+ * Removes disconnected player from their room if applicable.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {SocketIO.Socket} socket - Connected client socket
+ * @returns {() => void} disconnect handler
+ */
 function handleDisconnect(io, socket) {
     return () => {
         const idSession = socket.data?.roomId;
@@ -314,10 +402,28 @@ function removePlayerFromRoom(io, roomId, playerName) {
     emitToRoom(io, roomId, 'deletePlayerInRoom', game);
 }
 
+/**
+ * Emits an event with payload to all sockets in a room.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {string} roomId - Target room id
+ * @param {string} eventName - Event name to emit
+ * @param {any} payload - Event payload
+ * @returns {void}
+ */
 function emitToRoom(io, roomId, eventName, payload) {
     io.to(roomId).emit(eventName, payload);
 }
 
+/**
+ * Emits an event with payload to a specific socket.
+ *
+ * @param {SocketIO.Server} io - Socket.IO server instance
+ * @param {string} socketId - Target socket id
+ * @param {string} eventName - Event name to emit
+ * @param {any} payload - Event payload
+ * @returns {void}
+ */
 function emitToSocket(io, socketId, eventName, payload) {
     io.to(socketId).emit(eventName, payload);
 }

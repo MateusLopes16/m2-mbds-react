@@ -81,6 +81,18 @@ function giveColorToPlayers(players) {
     }
 }
 
+/**
+ * Distributes cards to players according to Punto rules and player count.
+ *
+ * Card distribution:
+ * - 2 players: each player gets 2 copies of values 1-9 for each of their 2 colors
+ * - 3 players: each player gets 2 copies of values 1-9 for their non-shared color,
+ *   then shared color cards are shuffled and distributed evenly
+ * - 4 players: each player gets 2 copies of values 1-9 for their single color
+ *
+ * @param {Array<Object>} players - Players with pre-assigned colors
+ * @returns {void}
+ */
 function giveCardsToPlayers(players) {
     const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const numPlayers = players.length;
@@ -164,6 +176,13 @@ function giveCardsToPlayers(players) {
     }
 }
 
+/**
+ * Advances to the next player that still has cards, picks one random card,
+ * updates board placable states for that card, and returns turn payload.
+ *
+ * @param {Object} game - Current game state
+ * @returns {{card: Object, game: Object}|undefined} Next turn data, or undefined if game is invalid
+ */
 function playerTurn(game) {
     if (!game || !game.players || game.players.length === 0) {
         return;
@@ -194,6 +213,17 @@ function playerTurn(game) {
     };
 }
 
+/**
+ * Recomputes board state after considering a candidate card:
+ * - Initializes center placable spots on an empty board
+ * - Clears previous placable indicators
+ * - Marks adjacent empty cells as placable spots
+ * - Marks lower-value opponent cards as placable targets
+ *
+ * @param {Object} game - Current game state containing board cells
+ * @param {Object} card - Candidate card to evaluate placements for
+ * @returns {void}
+ */
 function updateBoardState(game, card) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
@@ -264,6 +294,14 @@ function updateBoardState(game, card) {
     }
 }
 
+/**
+ * Checks whether the last placed card completes a 4-card alignment
+ * of the same color horizontally, vertically, or diagonally.
+ *
+ * @param {Object} game - Current game state
+ * @param {Object} placedCard - Card that has just been placed
+ * @returns {boolean} True if a winning alignment is found
+ */
 function checkWin(game, placedCard) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
@@ -315,6 +353,15 @@ function checkWin(game, placedCard) {
     return false;
 }
 
+/**
+ * Removes the highest-value card of the winning color owned by the given player
+ * from the board after a point is scored.
+ *
+ * @param {Object} game - Current game state
+ * @param {Object} player - Player who scored
+ * @param {string} winningColor - Color that produced the winning alignment
+ * @returns {void}
+ */
 function removeBestPlacedCardFromPlayer(game, player, winningColor) {
     const board = game.board.cells;
     let bestCard = null;
@@ -339,6 +386,13 @@ function removeBestPlacedCardFromPlayer(game, player, winningColor) {
     }
 }
 
+/**
+ * Returns all cards currently on the board to their respective owners' hands,
+ * then resets every board cell to unplacableSpot.
+ *
+ * @param {Object} game - Current game state
+ * @returns {void}
+ */
 function resetGameBoard(game) {
     const board = game.board.cells;
 
