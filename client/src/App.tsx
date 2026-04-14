@@ -10,10 +10,13 @@ import Rules from './components/rules/rules'
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Lobby />} />
+      <Route path="/" element={
+        <div className="baseline"><Lobby /></div>
+      } />
       <Route path="/lobby/:id" element={<Waiting />} />
       <Route path="/Game/:id" element={<Game />} />
-      <Route path="/replay/:id" element={<ReplayGame />} />
+      <Route path="/replay/:id" element={
+        <div className="baseline"><ReplayGame /></div>} />
       <Route path="/leaderboard/:id" element={<Leaderboard />} />
       <Route
         path="/rules"

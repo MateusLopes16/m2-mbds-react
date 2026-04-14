@@ -16,6 +16,7 @@ $player-colors: (
     border: 3px dashed currentColor;
     transition: all 0.1s ease-in-out;
     font-size: 2em;
+    user-select: none;
     animation: pulse 2s infinite;
     cursor: pointer;
 

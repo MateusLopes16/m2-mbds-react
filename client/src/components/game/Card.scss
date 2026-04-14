@@ -15,6 +15,7 @@ $player-colors: (
     background-color: var(--player-color);
     border: 3px solid var(--player-color);
     transition: all 0.3s ease-in-out;
+    user-select: none;
 
     @each $name, $value in $player-colors {
         &.#{$name} {

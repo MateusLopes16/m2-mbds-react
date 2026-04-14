@@ -93,6 +93,7 @@ $player-colors: (
 
         .point1,
         .point2 {
+            user-select: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -124,6 +125,7 @@ $player-colors: (
     }
 
     .current-card {
+        user-select: none;
         width: 70px;
         height: 70px;
         border-radius: 15px;

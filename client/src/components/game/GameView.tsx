@@ -96,9 +96,7 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
             <div className="center">
                 {leftPlayer}
                 <div className="board-shell">
-                    {leftBoardControl && <div className="board-nav">{leftBoardControl}</div>}
                     <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} lastPlacedPosition={lastPlacedPosition} onCellClick={handleCellClick} />
-                    {rightBoardControl && <div className="board-nav">{rightBoardControl}</div>}
                 </div>
                 {rightPlayer}
             </div>

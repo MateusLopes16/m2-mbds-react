@@ -1,0 +1,86 @@
+.game-replay-actions {
+	position: fixed;
+	z-index: 40;
+	width: min(420px, calc(100vw - 16px));
+	background: color-mix(in srgb, var(--surface-color, #111) 86%, black);
+	border: 1px solid color-mix(in srgb, var(--border-color, #4c4c4c) 70%, transparent);
+	border-radius: 16px;
+	padding: 14px 16px;
+	box-shadow: 0 8px 24px color-mix(in srgb, black 26%, transparent);
+	cursor: grab;
+	user-select: none;
+
+	&.dragging {
+		box-shadow: 0 14px 30px color-mix(in srgb, black 34%, transparent);
+		cursor: grabbing;
+	}
+
+	.bar-head {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 8px;
+		color: var(--secondary-text-color, #c2c2c2);
+		font-size: 0.78rem;
+		letter-spacing: 0.01em;
+	}
+
+	.progress-meta {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 0.85rem;
+		color: var(--secondary-text-color, #c2c2c2);
+		margin-bottom: 8px;
+	}
+
+	.progress-row {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 14px;
+
+		input[type='range'] {
+			width: 100%;
+			accent-color: var(--primary-color, #1db954);
+			cursor: pointer;
+			user-select: auto;
+		}
+	}
+
+	.actions-row {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+
+		button {
+			border: none;
+			border-radius: 999px;
+			padding: 8px 14px;
+			background: color-mix(in srgb, var(--border-color, #3e3e3e) 70%, transparent);
+			color: var(--text-color, #fff);
+			cursor: pointer;
+			user-select: auto;
+			font-weight: 600;
+			transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+
+			&:hover:not(:disabled) {
+				transform: translateY(-1px);
+				background: color-mix(in srgb, var(--primary-color, #1db954) 45%, #252525);
+			}
+
+			&:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+		}
+
+		.play-button {
+			min-width: 92px;
+			background: var(--primary-color, #1db954);
+			color: #0d0d0d;
+		}
+	}
+}

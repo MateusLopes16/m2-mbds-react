@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import GameView from './GameView'
 import Swal from 'sweetalert2'
 import type { BoardCellObject, BoardPositionObject, CardObject, GameObject, PlacementObject, PlayerObject } from '../../service/WebSocketObjects'
 import './ReplayGame.scss'
+import GameReplayActions from './replay/GameReplayActions'
 
 type ReplayTurn = {
     turn?: number;
@@ -62,6 +63,7 @@ function ReplayGame() {
     const [currentTurnIndex, setCurrentTurnIndex] = useState(0)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isPlaybackBlocked, setIsPlaybackBlocked] = useState(false)
     const previousTurnIndexRef = useRef(0)
 
     useEffect(() => {
@@ -227,26 +229,47 @@ function ReplayGame() {
 
         const scorerScore = scoreByName.get(scoringPlayerName)
 
-        void Swal.fire({
-            icon: 'success',
-            title: `${scoringPlayerName} marque un point !`,
-            text: scorerScore ? `Score: ${scorerScore}` : undefined,
-            timer: 1500,
-            showConfirmButton: false,
-            customClass: {
-                popup: 'app-swal-popup',
-                title: 'app-swal-title',
-                htmlContainer: 'app-swal-text',
-                confirmButton: 'app-swal-confirm',
-                cancelButton: 'app-swal-cancel',
-            },
-        })
+        const showScorePopup = async () => {
+            try {
+                setIsPlaybackBlocked(true)
+                await Swal.fire({
+                    icon: 'success',
+                    title: `${scoringPlayerName} marque un point !`,
+                    text: scorerScore ? `Score: ${scorerScore}` : undefined,
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'app-swal-popup',
+                        title: 'app-swal-title',
+                        htmlContainer: 'app-swal-text',
+                        confirmButton: 'app-swal-confirm',
+                        cancelButton: 'app-swal-cancel',
+                    },
+                })
+            } finally {
+                setIsPlaybackBlocked(false)
+            }
+        }
+
+        void showScorePopup()
     }, [replay, currentTurn, currentTurnIndex, scoreByName])
 
     const totalTurns = replay?.game.length || 0
     const canGoPrevious = currentTurnIndex > 0
     const canGoNext = currentTurnIndex < totalTurns - 1
     const activePlayerName = nextTurn?.playerName || null
+
+    const goToPreviousTurn = useCallback(() => {
+        setCurrentTurnIndex((previous) => Math.max(previous - 1, 0))
+    }, [])
+
+    const goToNextTurn = useCallback(() => {
+        setCurrentTurnIndex((previous) => Math.min(previous + 1, Math.max(totalTurns - 1, 0)))
+    }, [totalTurns])
+
+    const goToTurn = useCallback((turnIndex: number) => {
+        setCurrentTurnIndex(Math.min(Math.max(turnIndex, 0), Math.max(totalTurns - 1, 0)))
+    }, [totalTurns])
 
     if (isLoading) {
         return <div>Loading replay...</div>
@@ -258,9 +281,6 @@ function ReplayGame() {
 
     return (
         <div className="replay-game">
-            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                Turn {totalTurns === 0 ? 0 : currentTurnIndex + 1} / {totalTurns}
-            </div>
             <GameView
                 currentGame={replayGame}
                 activePlayerName={activePlayerName}
@@ -269,26 +289,16 @@ function ReplayGame() {
                 lastPlacedPosition={replayPlacedPosition}
                 currentPlayerName=""
                 placeCard={noopPlaceCard}
-                leftBoardControl={(
-                    <button
-                        type="button"
-                        onClick={() => setCurrentTurnIndex((previous) => Math.max(previous - 1, 0))}
-                        disabled={!canGoPrevious}
-                        aria-label="Previous turn"
-                    >
-                        {'<'}
-                    </button>
-                )}
-                rightBoardControl={(
-                    <button
-                        type="button"
-                        onClick={() => setCurrentTurnIndex((previous) => Math.min(previous + 1, totalTurns - 1))}
-                        disabled={!canGoNext}
-                        aria-label="Next turn"
-                    >
-                        {'>'}
-                    </button>
-                )}
+            />
+            <GameReplayActions
+                currentTurnIndex={currentTurnIndex}
+                totalTurns={totalTurns}
+                canGoPrevious={canGoPrevious}
+                canGoNext={canGoNext}
+                isPlaybackBlocked={isPlaybackBlocked}
+                onPrevious={goToPreviousTurn}
+                onNext={goToNextTurn}
+                onSeek={goToTurn}
             />
         </div>
     )
