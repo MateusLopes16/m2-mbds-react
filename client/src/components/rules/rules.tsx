@@ -2,9 +2,13 @@ import Card from '../game/Card';
 import './rules.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import PlacableSpot from '../game/PlacableSpot';
+import UnPlacableSpot from '../game/UnplacableSpot';
+import WinningConditionsDemo from './WinningConditionsDemo';
 
 function Rules() {
     const [isCardClicked, setIsCardClicked] = useState(false);
+    const [isMiniBoardUnlocked, setIsMiniBoardUnlocked] = useState(false);
     const navigate = useNavigate();
 
     const handleBackClick = () => {
@@ -13,6 +17,10 @@ function Rules() {
 
     const handleCardClick = () => {
         setIsCardClicked(!isCardClicked);
+    }
+
+    const handleMiniBoardCenterClick = () => {
+        setIsMiniBoardUnlocked(!isMiniBoardUnlocked);
     }
 
     return (
@@ -76,7 +84,7 @@ function Rules() {
                             </div>
                             <div className="3 players players-distribution">
                                 <div className="header">
-                                    <span className="icon yellow">3</span>
+                                    <span className="icon orange">3</span>
                                     joueurs
                                 </div>
                                 <div className="content">
@@ -135,6 +143,77 @@ function Rules() {
                         </div>
                         <div className="section-title">Gameplay</div>
                     </div>
+                    <div className="section-content">
+                        <div className="players-positions">
+                            <div>L'ordre de jeu est tiré <span className="highlight">aléatoirement</span> parmis les joueurs présents.</div>
+                            <div className="player-turns">
+                                <div className="first-player player red">
+                                    <span>1</span>
+                                </div>
+                                <span>→</span>
+                                <div className="second-player player green">
+                                    <span>2</span>
+                                </div>
+                                <span>→</span>
+                                <div className="third-player player orange">
+                                    <span>3</span>
+                                </div>
+                                <span>→</span>
+                                <div className="fourth-player player blue">
+                                    <span>4</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="your-turn">
+                            <div className="highlight">C'est votre tour !</div>
+                            <div>Placer une une carte sur un <span className="highlight">emplacement</span> disponible marqué par :</div>
+                            <div className="possible-board-values">
+                                <div className="board-cell">
+                                    <PlacableSpot color="blue" />
+                                </div>
+                            </div>
+                            <div><span className="highlight">D'autres emplacements</span> sont bloquées sur le plateau</div>
+                            <div className="possible-board-values">
+                                <div className="board-cell">
+                                    <UnPlacableSpot />
+                                </div>
+                            </div>
+                            <div className="mini-board-instructions">
+                                Il suffit de placer une <span className="highlight">carte</span> sur un emplacement <span className="highlight">adjacent</span> pour débloquer tous les emplacements autour
+                                <span>
+                                    {isMiniBoardUnlocked ? (
+                                        <svg onClick={handleMiniBoardCenterClick} className="replay" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+                                    ) : null}
+                                </span>
+
+                            </div>
+                            <div className="mini-board-container">
+                                <div className="mini-board">
+                                    {[0, 1, 2].map((row) => (
+                                        <div key={row} className="board-row">
+                                            {[0, 1, 2].map((col) => (
+                                                <div key={col} className="board-cell">
+                                                    {row === 1 && col === 1 ? (
+                                                        isMiniBoardUnlocked ? (
+                                                            <Card card={{ number: '9', cardColor: 'blue', clickable: false, playerColor: '' }} />
+                                                        ) : (
+                                                            <div className="board-spot" role="button" tabIndex={0} onClick={handleMiniBoardCenterClick}>
+                                                                <PlacableSpot color="blue" />
+                                                            </div>
+                                                        )
+                                                    ) : isMiniBoardUnlocked ? <PlacableSpot color="blue" /> : <UnPlacableSpot />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="section-footer">
+                            <span className="highlight">Remarque :</span>
+                            <span>cliquez sur l'emplacement <span className="highlight blue">+</span></span>
+                        </div>
+                    </div>
                 </section>
                 <section className="rules-section gameplay">
                     <div className="section-head">
@@ -144,7 +223,7 @@ function Rules() {
                         <div className="section-title">Capture de cartes</div>
                     </div>
                     <div className="section-content">
-                        <span>Vous pouvez capturer une carte de votre <span className="highlight">adversaire</span> en jouant une carte de valeur <span className="highlight">supérieure</span> à celle-ci.</span>
+                        <span>Vous pouvez capturer une <span className="highlight">carte</span> en jouant une carte de valeur <span className="highlight">supérieure</span> à celle-ci.</span>
                         <div className="superposed-cards">
                             <div className="info-card">
                                 <div className="card-content">
@@ -156,7 +235,7 @@ function Rules() {
                             </div>
                             <div className="vertical-separator"></div>
                             {
-                                isCardClicked ? (
+                                !isCardClicked ? (
                                     <div className="opponent">
                                         <div className="info-card">
                                             <div className="card-content" onClick={handleCardClick}>
@@ -194,6 +273,11 @@ function Rules() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"></path><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"></path><path d="M18 9h1.5a1 1 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"></path><path d="M6 9H4.5a1 1 0 0 1 0-5H6"></path></svg>
                         </div>
                         <div className="section-title">Gagner la partie</div>
+                    </div>
+                    <div className="section-content">
+                        <span>Le premier joueur à aligner <span className="highlight">4 cartes</span> de la <span className="highlight">même</span> couleur gagne un point.</span>
+                        <span>En remportant <span className="highlight">2 points</span> vous gagnez la partie.</span>
+                        <WinningConditionsDemo />
                     </div>
                 </section>
                 <section className="rules-section tips">

@@ -29,6 +29,35 @@
     padding: 0;
     font-family: Arial, sans-serif;
     box-sizing: border-box;
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(var(--primary-color) 45%, var(--replay-scrollbar-thumb-fallback)) color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+
+    /* Chromium / WebKit */
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+        border-radius: 999px;
+        border: 1px solid color-mix(var(--border-color) 65%, transparent);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg,
+                color-mix(var(--primary-color) 55%, var(--replay-scrollbar-thumb-start-fallback)) 0%,
+                color-mix(var(--primary-color) 35%, var(--replay-scrollbar-thumb-end-fallback)) 100%);
+        border-radius: 999px;
+        border: 2px solid color-mix(var(--input-color) 78%, var(--replay-scrollbar-track-fallback));
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg,
+                color-mix(var(--primary-color) 68%, var(--replay-scrollbar-thumb-hover-start-fallback)) 0%,
+                color-mix(var(--primary-color) 45%, var(--replay-scrollbar-thumb-hover-end-fallback)) 100%);
+    }
 }
 
 html,
@@ -60,10 +89,12 @@ h1 {
         opacity: 0.5;
         transform: scale(1);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.1);
     }
+
     100% {
         opacity: 0.5;
         transform: scale(1);
