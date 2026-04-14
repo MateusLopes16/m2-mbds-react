@@ -211,7 +211,6 @@ function handlePlaceCard(io, socket) {
             player.score = (player.score || 0) + 1;
             emitToRoom(io, idSession, 'playerPoint', { game, winningLine, placedPosition });
 
-            // Make it 2 again before push
             if (player.score === 2) {
                 game.winner = player.name;
                 try {

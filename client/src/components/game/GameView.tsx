@@ -25,7 +25,7 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
         name: player.name,
         color: player.color,
         active: player.name === activePlayerName,
-        point1: player.score == 1 ? true : false,
+        point1: player.score >= 1 ? true : false,
         point2: player.score == 2 ? true : false,
     }));
 
