@@ -1,7 +1,9 @@
 const games = {};
 const maxPlayersPerRoom = 4;
-const { initGame, playerTurn, checkWin, removeBestPlacedCardFromPlayer, resetGameBoard } = require('../model/Game');
+const { initGame, playerTurn, findWinningLine, removeBestPlacedCardFromPlayer, resetGameBoard } = require('../model/Game');
 const { upsertJsonObjectBySession } = require('../mongodb');
+
+const WINNING_LINE_HIGHLIGHT_MS = 2400;
 
 /**
  * Checks whether a player name is already present in a room.
@@ -202,12 +204,13 @@ function handlePlaceCard(io, socket) {
         game.replayTimeline.push(replayTurn);
 
         buildGameReplayObjectForMongo(game, idSession);
+        const winningLine = findWinningLine(game, board[x][y]);
 
-
-        if (checkWin(game, board[x][y])) {
+        if (winningLine) {
             player.score = (player.score || 0) + 1;
-            emitToRoom(io, idSession, 'playerPoint', game);
+            emitToRoom(io, idSession, 'playerPoint', { game, winningLine });
 
+            // Make it 2 again before push
             if (player.score === 2) {
                 game.winner = player.name;
                 try {
@@ -216,18 +219,19 @@ function handlePlaceCard(io, socket) {
                 } catch (error) {
                     console.error('[replay] Failed to save final replay:', error.message);
                 }
-                emitToRoom(io, idSession, 'gameEnded', game);
+                emitToRoom(io, idSession, 'gameEnded', { game, winningLine });
                 return;
             }
 
-            removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
-            resetGameBoard(game);
-            console.log(`[game] Player ${player.name} scored a point in session ${idSession}. Current score: ${player.score}`);
-            for (const player of game.players) {
-                console.log(`Player ${player.name} has ${player.cards.length} cards remaining.`);
-            }
-
-            emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+            setTimeout(() => {
+                removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
+                resetGameBoard(game);
+                console.log(`[game] Player ${player.name} scored a point in session ${idSession}. Current score: ${player.score}`);
+                for (const player of game.players) {
+                    console.log(`Player ${player.name} has ${player.cards.length} cards remaining.`);
+                }
+                emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+            }, WINNING_LINE_HIGHLIGHT_MS);
             return;
         }
 
