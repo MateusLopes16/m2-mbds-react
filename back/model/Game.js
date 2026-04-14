@@ -300,9 +300,9 @@ function updateBoardState(game, card) {
  *
  * @param {Object} game - Current game state
  * @param {Object} placedCard - Card that has just been placed
- * @returns {boolean} True if a winning alignment is found
+ * @returns {Array<{x:number,y:number}>|null} Winning line coordinates, or null
  */
-function checkWin(game, placedCard) {
+function findWinningLine(game, placedCard) {
     const board = game.board.cells;
     const BOARD_SIZE = 6;
     const WIN_LENGTH = 4;
@@ -334,6 +334,7 @@ function checkWin(game, placedCard) {
                 }
 
                 let aligned = true;
+                const winningLine = [];
                 for (let step = 0; step < WIN_LENGTH; step++) {
                     const currentRow = row + step * dRow;
                     const currentCol = col + step * dCol;
@@ -341,16 +342,29 @@ function checkWin(game, placedCard) {
                         aligned = false;
                         break;
                     }
+
+                    winningLine.push({ x: currentRow, y: currentCol });
                 }
 
                 if (aligned) {
-                    return true;
+                    return winningLine;
                 }
             }
         }
     }
 
-    return false;
+    return null;
+}
+
+/**
+ * Boolean helper kept for compatibility with existing game logic.
+ *
+ * @param {Object} game - Current game state
+ * @param {Object} placedCard - Card that has just been placed
+ * @returns {boolean} True if a winning alignment is found
+ */
+function checkWin(game, placedCard) {
+    return !!findWinningLine(game, placedCard);
 }
 
 /**
@@ -422,4 +436,4 @@ function resetGameBoard(game) {
     }
 }
 
-module.exports = { initGame, playerTurn, checkWin, removeBestPlacedCardFromPlayer, resetGameBoard };
+module.exports = { initGame, playerTurn, checkWin, findWinningLine, removeBestPlacedCardFromPlayer, resetGameBoard };

@@ -122,6 +122,8 @@ function ReplayGame() {
                 currentGame={replayGame}
                 activePlayerName={activePlayerName}
                 currentCard={null}
+                winningLine={null}
+                lastPlacedPosition={null}
                 currentPlayerName=""
                 placeCard={noopPlaceCard}
                 leftBoardControl={(

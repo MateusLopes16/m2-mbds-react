@@ -2,19 +2,21 @@ import './Game.scss'
 import type { ReactNode } from 'react'
 import Player from './Player'
 import Board from './Board'
-import type { CardObject, GameObject, PlacementObject } from '../../service/WebSocketObjects'
+import type { BoardPositionObject, CardObject, GameObject, PlacementObject } from '../../service/WebSocketObjects'
 
 type GameViewProps = {
     currentGame: GameObject | null;
     activePlayerName: string | null;
     currentCard: CardObject | null;
+    winningLine: BoardPositionObject[] | null;
+    lastPlacedPosition: BoardPositionObject | null;
     currentPlayerName: string;
     placeCard: (placement: PlacementObject) => void;
     leftBoardControl?: ReactNode;
     rightBoardControl?: ReactNode;
 }
 
-function GameView({ currentGame, activePlayerName, currentCard, currentPlayerName, placeCard, leftBoardControl, rightBoardControl }: GameViewProps) {
+function GameView({ currentGame, activePlayerName, currentCard, winningLine, lastPlacedPosition, currentPlayerName, placeCard, leftBoardControl, rightBoardControl }: GameViewProps) {
     if (!currentGame || !currentGame.players) {
         return <div>Loading...</div>
     }
@@ -23,7 +25,7 @@ function GameView({ currentGame, activePlayerName, currentCard, currentPlayerNam
         name: player.name,
         color: player.color,
         active: player.name === activePlayerName,
-        point1: player.score == 1 ? true : false,
+        point1: player.score >= 1 ? true : false,
         point2: player.score == 2 ? true : false,
     }));
 
@@ -104,7 +106,7 @@ function GameView({ currentGame, activePlayerName, currentCard, currentPlayerNam
                 {renderPlayerSpot(1)}
                 <div className="board-shell">
                     {leftBoardControl && <div className="board-nav">{leftBoardControl}</div>}
-                    <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} onCellClick={handleCellClick} />
+                    <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} lastPlacedPosition={lastPlacedPosition} onCellClick={handleCellClick} />
                     {rightBoardControl && <div className="board-nav">{rightBoardControl}</div>}
                 </div>
                 {renderPlayerSpot(2)}

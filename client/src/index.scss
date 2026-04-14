@@ -50,3 +50,22 @@ h1 {
     margin-top: 20px;
     color: #333;
 }
+
+.scale-and-pulse {
+    animation: scale-and-pulse 1.2s infinite;
+}
+
+@keyframes scale-and-pulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+}

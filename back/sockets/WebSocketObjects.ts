@@ -24,6 +24,20 @@ export interface PlacementObject {
     position: { x: number; y: number };
 }
 
+export interface BoardPositionObject {
+    x: number;
+    y: number;
+}
+
+export interface GameUpdatedEventObject {
+    game: GameObject;
+    placedPosition?: BoardPositionObject;
+}
+
+export interface ScoredLineEventObject extends GameUpdatedEventObject {
+    winningLine: BoardPositionObject[];
+}
+
 export interface RoomConnectionObject {
     id: string;
     player: PlayerObject;

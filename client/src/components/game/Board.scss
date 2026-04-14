@@ -22,6 +22,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
+
+            .board-card-wrapper {
+                width: 100%;
+                height: 100%;
+            }
+
+            .card-place-pop {
+                animation: card-place-pop 300ms ease-out 1;
+                transform-origin: center center;
+            }
         }
+    }
+}
+
+@keyframes card-place-pop {
+    0% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
     }
 }
