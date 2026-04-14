@@ -5,6 +5,7 @@ import ReplayGame from './components/game/ReplayGame'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Waiting from './components/lobby/Waiting'
 import Leaderboard from './components/game/Leaderboard'
+import Rules from './components/rules/rules'
 
 function App() {
   return (
@@ -14,6 +15,14 @@ function App() {
       <Route path="/Game/:id" element={<Game />} />
       <Route path="/replay/:id" element={<ReplayGame />} />
       <Route path="/leaderboard/:id" element={<Leaderboard />} />
+      <Route
+        path="/rules"
+        element={(
+          <div className="baseline">
+            <Rules />
+          </div>
+        )}
+      />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

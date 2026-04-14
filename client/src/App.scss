@@ -46,3 +46,16 @@
         border: none;
     }
 }
+
+.baseline {
+    margin-top: 20px;
+    height: 100%;
+    width: 100%;
+    background-color: var(--background-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: baseline;
+    flex-direction: column;
+    overflow: auto;
+}

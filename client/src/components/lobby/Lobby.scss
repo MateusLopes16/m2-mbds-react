@@ -56,6 +56,18 @@
                 font-size: 0.9em;
                 color: var(--secondary-text-color);
                 text-align: center;
+
+                .rules-button {
+                    margin-top: 10px;
+                    font-size: 0.8em;
+                    color: var(--primary-color);
+                    cursor: pointer;
+                    transition: color 0.2s;
+
+                    &:hover {
+                        color: var(--primary-color-hover);
+                    }
+                }
             }
         }
 

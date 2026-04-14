@@ -47,8 +47,8 @@ $player-colors: (
     }
 
     @each $name, $value in $player-colors {
-            &.#{$name} {
-                color: #{$value};
-            }
+        &.#{$name} {
+            color: #{$value};
         }
+    }
 }
