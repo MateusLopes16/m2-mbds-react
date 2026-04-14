@@ -169,14 +169,12 @@ function handlePlaceCard(io, socket) {
         if (!cellAtPosition || (cellAtPosition.type !== 'placableSpot' && cellAtPosition.type !== 'placableCard')) {
             emitToSocket(io, socket.id, 'error', { message: 'Cell is not placable' });
             return;
-        } else if (cellAtPosition.type === 'placableCard' && cellAtPosition.color === card.color) {
-            emitToSocket(io, socket.id, 'error', { message: 'Cannot place on top of a card of the same color' });
-            return;
-        } else if ((cellAtPosition.type === 'placableCard' || cellAtPosition.type === 'card') && cellAtPosition.color !== card.color) {
-            // If placing on top of an opponent's card, return it to their hand
-            const opponentPlayer = game.players.find((p) => p.name === cellAtPosition.owner.name);
-            if (opponentPlayer) {
-                opponentPlayer.cards.push(cellAtPosition);
+        } else if (cellAtPosition.type === 'placableCard' || cellAtPosition.type === 'card') {
+            // If placing on top of a card, return it to its owner's hand.
+            const cardOwnerName = typeof cellAtPosition.owner === 'object' ? cellAtPosition.owner?.name : cellAtPosition.owner;
+            const cardOwner = game.players.find((p) => p.name === cardOwnerName);
+            if (cardOwner) {
+                cardOwner.cards.push(cellAtPosition);
             }
         }
 
