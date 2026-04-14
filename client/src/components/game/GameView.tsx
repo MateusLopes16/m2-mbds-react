@@ -9,13 +9,14 @@ type GameViewProps = {
     activePlayerName: string | null;
     currentCard: CardObject | null;
     winningLine: BoardPositionObject[] | null;
+    lastPlacedPosition: BoardPositionObject | null;
     currentPlayerName: string;
     placeCard: (placement: PlacementObject) => void;
     leftBoardControl?: ReactNode;
     rightBoardControl?: ReactNode;
 }
 
-function GameView({ currentGame, activePlayerName, currentCard, winningLine, currentPlayerName, placeCard, leftBoardControl, rightBoardControl }: GameViewProps) {
+function GameView({ currentGame, activePlayerName, currentCard, winningLine, lastPlacedPosition, currentPlayerName, placeCard, leftBoardControl, rightBoardControl }: GameViewProps) {
     if (!currentGame || !currentGame.players) {
         return <div>Loading...</div>
     }
@@ -105,7 +106,7 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, cur
                 {renderPlayerSpot(1)}
                 <div className="board-shell">
                     {leftBoardControl && <div className="board-nav">{leftBoardControl}</div>}
-                    <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} onCellClick={handleCellClick} />
+                    <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} lastPlacedPosition={lastPlacedPosition} onCellClick={handleCellClick} />
                     {rightBoardControl && <div className="board-nav">{rightBoardControl}</div>}
                 </div>
                 {renderPlayerSpot(2)}

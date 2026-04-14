@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import type {
     BoardPositionObject,
     CardObject,
+    GameUpdatedEventObject,
     GameObject,
     ScoredLineEventObject,
     PlayerObject,
@@ -32,6 +33,7 @@ type WebSocketContextType = {
     activePlayerName: string | null;
     currentCard: CardObject | null;
     winningLine: BoardPositionObject[] | null;
+    lastPlacedPosition: BoardPositionObject | null;
     connectToWebSocket: (roomId: string, playerName: string) => Socket;
     leaveRoom: (roomId: string) => void;
     disconnectFromWebSocket: () => void;
@@ -54,7 +56,13 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
     const [winningLine, setWinningLine] = useState<BoardPositionObject[] | null>(
         null,
     );
+    const [lastPlacedPosition, setLastPlacedPosition] = useState<BoardPositionObject | null>(
+        null,
+    );
     const socketRef = useRef<Socket | null>(null);
+    const placementAnimationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null,
+    );
     const navigate = useNavigate();
     const [, setPlayers] = useState<PlayerObject[]>([]);
 
@@ -69,6 +77,38 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             game: payload,
             winningLine: [],
         };
+    };
+
+    const normalizeGameUpdatedPayload = (
+        payload: GameObject | GameUpdatedEventObject,
+    ): GameUpdatedEventObject => {
+        if ("game" in payload) {
+            return payload;
+        }
+
+        return {
+            game: payload,
+        };
+    };
+
+    const triggerPlacedCardAnimation = (
+        placedPosition?: BoardPositionObject,
+    ) => {
+        if (!placedPosition) {
+            setLastPlacedPosition(null);
+            return;
+        }
+
+        setLastPlacedPosition(placedPosition);
+
+        if (placementAnimationTimeoutRef.current) {
+            clearTimeout(placementAnimationTimeoutRef.current);
+        }
+
+        placementAnimationTimeoutRef.current = setTimeout(() => {
+            setLastPlacedPosition(null);
+            placementAnimationTimeoutRef.current = null;
+        }, 220);
     };
 
     //get or create a socket connection
@@ -119,11 +159,13 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             setSocketId(null);
             setCurrentGame(null);
             setWinningLine(null);
+            setLastPlacedPosition(null);
         });
 
         activeSocket.on("joinedRoom", (game: GameObject) => {
             setCurrentGame(game);
             setWinningLine(null);
+            setLastPlacedPosition(null);
             roomId = game.id;
             navigate("/lobby/" + roomId);
             console.log("Joined room:", game.id);
@@ -149,6 +191,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
         activeSocket.on("gameStarted", (game: GameObject) => {
             setCurrentGame(game);
             setWinningLine(null);
+            setLastPlacedPosition(null);
             setCurrentPlayerColor(
                 game.players.find((player) => player.name === playerName)
                     ?.color[0] ?? "",
@@ -162,17 +205,20 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             setCurrentGame(game);
         });
 
-        activeSocket.on("gameUpdated", (game: GameObject) => {
+        activeSocket.on("gameUpdated", (payload: GameObject | GameUpdatedEventObject) => {
+            const { game, placedPosition } = normalizeGameUpdatedPayload(payload);
             setCurrentGame(game);
             setWinningLine(null);
+            triggerPlacedCardAnimation(placedPosition);
         });
 
         activeSocket.on(
             "gameEnded",
             (payload: GameObject | ScoredLineEventObject) => {
-                const { game, winningLine } = normalizeScoredLinePayload(payload);
+                const { game, winningLine, placedPosition } = normalizeScoredLinePayload(payload);
                 setCurrentGame(game);
                 setWinningLine(winningLine);
+                triggerPlacedCardAnimation(placedPosition);
                 setActivePlayerName(null);
                 setCurrentCard(null);
 
@@ -205,9 +251,10 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
         activeSocket.on(
             "playerPoint",
             (payload: GameObject | ScoredLineEventObject) => {
-                const { game, winningLine } = normalizeScoredLinePayload(payload);
+                const { game, winningLine, placedPosition } = normalizeScoredLinePayload(payload);
                 setCurrentGame(game);
                 setWinningLine(winningLine);
+                triggerPlacedCardAnimation(placedPosition);
                 setActivePlayerName(null);
                 setCurrentCard(null);
             },
@@ -242,6 +289,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
         socketRef.current = null;
         setCurrentGame(null);
         setWinningLine(null);
+        setLastPlacedPosition(null);
     };
 
     const leaveRoom = (roomId: string) => {
@@ -275,6 +323,10 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         return () => {
+            if (placementAnimationTimeoutRef.current) {
+                clearTimeout(placementAnimationTimeoutRef.current);
+                placementAnimationTimeoutRef.current = null;
+            }
             socketRef.current?.disconnect();
             socketRef.current = null;
         };
@@ -290,6 +342,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             activePlayerName,
             currentCard,
             winningLine,
+            lastPlacedPosition,
             connectToWebSocket,
             leaveRoom,
             disconnectFromWebSocket,
@@ -304,6 +357,7 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             activePlayerName,
             currentCard,
             winningLine,
+            lastPlacedPosition,
         ],
     );
 

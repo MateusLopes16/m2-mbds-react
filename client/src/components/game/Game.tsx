@@ -2,7 +2,7 @@ import { useWebSocket } from '../../service/WebSocket'
 import GameView from './GameView'
 
 function Game() {
-    const { currentGame, activePlayerName, currentCard, winningLine, currentPlayerName, placeCard } = useWebSocket()
+    const { currentGame, activePlayerName, currentCard, winningLine, lastPlacedPosition, currentPlayerName, placeCard } = useWebSocket()
 
     return (
         <GameView
@@ -10,6 +10,7 @@ function Game() {
             activePlayerName={activePlayerName}
             currentCard={currentCard}
             winningLine={winningLine}
+            lastPlacedPosition={lastPlacedPosition}
             currentPlayerName={currentPlayerName}
             placeCard={placeCard}
         />

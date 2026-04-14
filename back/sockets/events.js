@@ -154,6 +154,7 @@ function handlePlaceCard(io, socket) {
         }
 
         const { x, y } = position;
+        const placedPosition = { x, y };
         const board = game.board.cells;
 
         // Validate position is within bounds
@@ -208,7 +209,7 @@ function handlePlaceCard(io, socket) {
 
         if (winningLine) {
             player.score = (player.score || 0) + 1;
-            emitToRoom(io, idSession, 'playerPoint', { game, winningLine });
+            emitToRoom(io, idSession, 'playerPoint', { game, winningLine, placedPosition });
 
             // Make it 2 again before push
             if (player.score === 2) {
@@ -219,7 +220,7 @@ function handlePlaceCard(io, socket) {
                 } catch (error) {
                     console.error('[replay] Failed to save final replay:', error.message);
                 }
-                emitToRoom(io, idSession, 'gameEnded', { game, winningLine });
+                emitToRoom(io, idSession, 'gameEnded', { game, winningLine, placedPosition });
                 return;
             }
 
@@ -235,7 +236,7 @@ function handlePlaceCard(io, socket) {
             return;
         }
 
-        emitToRoom(io, idSession, 'gameUpdated', game);
+        emitToRoom(io, idSession, 'gameUpdated', { game, placedPosition });
         emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
     };
 }

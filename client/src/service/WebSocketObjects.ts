@@ -29,8 +29,12 @@ export interface BoardPositionObject {
     y: number;
 }
 
-export interface ScoredLineEventObject {
+export interface GameUpdatedEventObject {
     game: GameObject;
+    placedPosition?: BoardPositionObject;
+}
+
+export interface ScoredLineEventObject extends GameUpdatedEventObject {
     winningLine: BoardPositionObject[];
 }
 
