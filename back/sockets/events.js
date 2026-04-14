@@ -70,7 +70,7 @@ function sanitizeBoardForReplay(boardCells) {
  * @param {{x: number, y: number}} position - Board position where card was placed
  * @returns {Object} Replay turn object
  */
-function buildReplayTurn(game, playerName, card, position) {
+function buildReplayTurn(game, playerName, card, position, scoringContext = {}) {
     const moveNumber = (game.replayMoveCount || 0) + 1;
     game.replayMoveCount = moveNumber;
 
@@ -82,6 +82,12 @@ function buildReplayTurn(game, playerName, card, position) {
             color: card.color
         },
         position,
+        playerScores: game.players.map((player) => ({
+            name: player.name,
+            score: player.score || 0
+        })),
+        scoringPlayerName: scoringContext.scoringPlayerName || null,
+        winningLine: scoringContext.winningLine || null,
         boardState: sanitizeBoardForReplay(game.board.cells)
     };
 }
@@ -104,6 +110,7 @@ function buildGameReplayObjectForMongo(game, idSession) {
             name: player.name,
             isHost: !!player.isHost,
             color: player.color,
+            score: player.score || 0,
             cardsRemaining: player.cards?.length || 0
         })),
         game: game.replayTimeline || []
@@ -198,16 +205,18 @@ function handlePlaceCard(io, socket) {
             }
         }
 
-        const replayTurn = buildReplayTurn(game, playerName, card, { x, y });
-        game.replayTimeline = game.replayTimeline || [];
-        game.replayTimeline.push(replayTurn);
-
-        buildGameReplayObjectForMongo(game, idSession);
         const winningLine = findWinningLine(game, board[x][y]);
+        let scoringPlayerName = null;
 
         if (winningLine) {
             player.score = (player.score || 0) + 1;
+            scoringPlayerName = player.name;
             emitToRoom(io, idSession, 'playerPoint', { game, winningLine, placedPosition });
+
+            const replayTurn = buildReplayTurn(game, playerName, card, { x, y }, { scoringPlayerName, winningLine });
+            game.replayTimeline = game.replayTimeline || [];
+            game.replayTimeline.push(replayTurn);
+            buildGameReplayObjectForMongo(game, idSession);
 
             if (player.score === 2) {
                 game.winner = player.name;
@@ -232,6 +241,12 @@ function handlePlaceCard(io, socket) {
             }, WINNING_LINE_HIGHLIGHT_MS);
             return;
         }
+
+        const replayTurn = buildReplayTurn(game, playerName, card, { x, y });
+        game.replayTimeline = game.replayTimeline || [];
+        game.replayTimeline.push(replayTurn);
+
+        buildGameReplayObjectForMongo(game, idSession);
 
         emitToRoom(io, idSession, 'gameUpdated', { game, placedPosition });
         emitToRoom(io, idSession, 'playerTurn', playerTurn(game));

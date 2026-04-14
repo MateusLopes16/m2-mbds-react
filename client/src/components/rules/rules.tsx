@@ -293,8 +293,7 @@ function Rules() {
                         </ul>
                     </div>
                 </section>
-            </div >
-            <div className="footer"></div>
+            </div>
         </div >
     );
 }
