@@ -222,7 +222,6 @@ function handlePlaceCard(io, socket) {
                 game.winner = player.name;
                 try {
                     await persistGameReplay(game, idSession);
-                    console.log(`[replay] Final replay saved for session ${idSession} (winner: ${player.name})`);
                 } catch (error) {
                     console.error('[replay] Failed to save final replay:', error.message);
                 }
@@ -233,10 +232,6 @@ function handlePlaceCard(io, socket) {
             setTimeout(() => {
                 removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
                 resetGameBoard(game);
-                console.log(`[game] Player ${player.name} scored a point in session ${idSession}. Current score: ${player.score}`);
-                for (const player of game.players) {
-                    console.log(`Player ${player.name} has ${player.cards.length} cards remaining.`);
-                }
                 emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
             }, WINNING_LINE_HIGHLIGHT_MS);
             return;

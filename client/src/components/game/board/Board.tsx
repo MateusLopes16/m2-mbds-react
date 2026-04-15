@@ -26,7 +26,6 @@ function Board({ board, currentCardColor, isCurrentPlayerTurn, winningLine, last
         const pos = target.getAttribute('data-pos');
         if (!pos) return;
         const [x, y] = pos.split(',').map(Number);
-        console.log(`Cell clicked at position: (${x}, ${y})`);
         onCellClick(x, y);
     };
 

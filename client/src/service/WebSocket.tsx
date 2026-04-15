@@ -168,7 +168,6 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             setLastPlacedPosition(null);
             roomId = game.id;
             navigate("/lobby/" + roomId);
-            console.log("Joined room:", game.id);
         });
 
         activeSocket.on("addPlayerToRoom", (player: PlayerObject) => {
@@ -185,7 +184,6 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
                     players: [...previousGame.players, player],
                 };
             });
-            console.log("Player added to room:", player.name);
         });
 
         activeSocket.on("gameStarted", (game: GameObject) => {
@@ -198,7 +196,6 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
             );
             setPlayers(game.players);
             navigate("/game/" + roomId);
-            console.log("Partie lancée", game.board);
         });
 
         activeSocket.on("deletePlayerInRoom", (game: GameObject) => {

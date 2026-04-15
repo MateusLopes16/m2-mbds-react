@@ -170,10 +170,6 @@ function giveCardsToPlayers(players) {
             });
         });
     }
-    console.log('Players after card distribution:', players);
-    for (const player of players) {
-        console.log(`Player ${player.name} has ${player.cards.length} cards:`, player.cards);
-    }
 }
 
 /**
@@ -424,7 +420,6 @@ function resetGameBoard(game) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = board[row][col];
             if ((cell.type === 'card' || cell.type === 'placableCard') && cell.owner) {
-                console.log(`Returning card ${cell.value} of color ${cell.color} to player ${cell.owner.name}'s hand.`);
                 // Add the card back to the owner's hand
                 const owner = game.players.find((p) => p.name === cell.owner.name);
                 if (owner) {
