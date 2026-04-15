@@ -8,16 +8,15 @@ https://github.com/MateusLopes16/m2-mbds-react
 
 ## Participants et tâches effectuées
 
-### Tâches collectives (faites par tous)
+### Tâches collectives
 
-Ces fonctionnalités ont été développées ensemble :
+Ces fonctionnalités ont été développées en collaboration *(MateusLopes16, MarvStunt et Natfike)* :
 
 - Mise en place des composants de rendu du plateau et liaison WebSocket (création/rejoindre une partie)
 - Gestion du lancement de partie, initialisation du jeu et premier tour du joueur
-- Amélioration des interactions du plateau de jeu et intégration WebSocket
+- Interactions du plateau de jeu et intégration WebSocket
 - Ajout de l'écran de fin de partie et de la condition de victoire
-- Ajout du bouton et de la liste de replays dans le lobby
-- Implémentation de la fonctionnalité de replay complète (endpoints API + composants UI)
+- Implémentation du replay
 
 ---
 
@@ -25,13 +24,11 @@ Ces fonctionnalités ont été développées ensemble :
 - **Nom** : Lopes
 - **Prénom** : Mateus
 - **Identifiant GitHub** : `MateusLopes16`
-- **Tâches individuelles (d'après les commits)** :
-  - Commit initial du projet, structure React de base 
-  - Premier serveur WebSocket backend
-  - Première implémentation du lobby et connexion à une salle WebSocket
-  - Connexion MongoDB côté API
+- **Tâches individuelles** :
   - CSS du lobby, salle d'attente et affichage du jeu
-  - Gestion des cellules du plateau (board cells management)
+  - Responsive global de l'application
+  - Page des règles
+  - Conception des interfaces
 
 ---
 
@@ -39,10 +36,9 @@ Ces fonctionnalités ont été développées ensemble :
 - **Nom** : Conil
 - **Prénom** : Marvin
 - **Identifiant GitHub** : `MarvStunt`
-- **Tâches individuelles (d'après les commits)** :
+- **Tâches individuelles** :
   - Amélioration de la salle d'attente : démarrage/quitter une partie, intégration SweetAlert2
-  - Sauvegarde de l'état du jeu à chaque tour pour le système de replay, ajout du serveur MongoDB
-  - Merge de la branche replay dans main et correction des bugs de jeu après merge
+  - Ajout du serveur MongoDB et sauvegarde des parties dans la base
 
 ---
 
@@ -50,14 +46,14 @@ Ces fonctionnalités ont été développées ensemble :
 - **Nom** : Hain
 - **Prénom** : Erwan
 - **Identifiant GitHub** : `Natifke`
-- **Tâches individuelles (d'après les commits)** :
+- **Tâches individuelles** :
   - Adaptation du projet pour le déploiement Firebase / Google Cloud
   - Hébergement du projet sur Google Cloud
 
 ---
 
 ## BONUS — URL du projet en ligne
-- URL ddu projet : https://m2-react-front.web.app/
+- URL du projet : https://m2-react-front.web.app/
 
 ## Lancer le projet from scratch
 
