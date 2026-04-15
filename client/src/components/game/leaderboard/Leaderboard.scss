@@ -139,3 +139,9 @@ $player-colors: (
         transform: translateY(0);
     }
 }
+
+@media screen and (max-width: 475px) {
+    .leaderboard {
+        max-width: 100%;
+    }
+}
