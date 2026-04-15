@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import Card from '../game/Card';
-import UnPlacableSpot from '../game/UnplacableSpot';
+import Card from '../game/board/Card';
+import UnPlacableSpot from '../game/board/UnplacableSpot';
 import './WinningConditionsDemo.scss';
 
 type CardColor = 'blue' | 'red' | 'green' | 'orange';

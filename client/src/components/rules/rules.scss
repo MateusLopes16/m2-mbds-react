@@ -17,6 +17,10 @@ $colors: (
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
+    
+    div, span {
+        flex-wrap: wrap;
+    }
 
     .highlight {
         font-weight: bold;
@@ -366,6 +370,12 @@ $colors: (
                             }
                         }
                     }
+                }
+            }
+
+            @media screen and (max-width: 500px) {
+                .section-content {
+                    padding-left: 0;
                 }
             }
 

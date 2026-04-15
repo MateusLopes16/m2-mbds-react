@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import GameView from './GameView'
+import GameView from '../GameView'
 import Swal from 'sweetalert2'
-import type { BoardCellObject, BoardPositionObject, CardObject, GameObject, PlacementObject, PlayerObject } from '../../service/WebSocketObjects'
+import type { BoardCellObject, BoardPositionObject, CardObject, GameObject, PlacementObject, PlayerObject } from '../../../service/WebSocketObjects'
 import './ReplayGame.scss'
-import GameReplayActions from './replay/GameReplayActions'
+import GameReplayActions from './GameReplayActions'
 
 type ReplayTurn = {
     turn?: number;

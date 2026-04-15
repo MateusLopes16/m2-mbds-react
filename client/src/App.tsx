@@ -1,10 +1,10 @@
 import './App.scss'
 import Lobby from './components/lobby/Lobby'
 import Game from './components/game/Game'
-import ReplayGame from './components/game/ReplayGame'
+import ReplayGame from './components/game/replay/ReplayGame'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Waiting from './components/lobby/Waiting'
-import Leaderboard from './components/game/Leaderboard'
+import Leaderboard from './components/game/leaderboard/Leaderboard'
 import Rules from './components/rules/rules'
 
 function App() {

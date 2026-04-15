@@ -67,6 +67,10 @@
         width: 100%;
     }
 
+    .mobile-side-players {
+        display: none;
+    }
+
     .player-disabled {
         opacity: 0.4;
         cursor: not-allowed;
@@ -77,6 +81,52 @@
             font-size: 48px;
             color: #999;
             font-weight: bold;
+        }
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .game-container {
+        gap: 12px;
+        padding: 12px;
+        justify-content: flex-start;
+
+        &.mobile-layout {
+            .center {
+                justify-content: center;
+
+                .board-shell {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+
+            .top,
+            .bottom {
+                justify-content: center;
+
+                .player-container {
+                    width: 100%;
+                    max-width: 340px;
+                }
+            }
+
+            .mobile-side-players {
+                display: grid;
+                gap: 10px;
+                width: 100%;
+                justify-items: center;
+                grid-template-columns: 1fr;
+
+                .player-container {
+                    width: 100%;
+                    max-width: 340px;
+                }
+
+                .player-container.hidden {
+                    display: none;
+                }
+            }
         }
     }
 }

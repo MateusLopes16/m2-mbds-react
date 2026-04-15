@@ -2,7 +2,7 @@ import './Board.scss'
 import Card from './Card'
 import PlacableSpot from './PlacableSpot'
 import UnPlacableSpot from './UnplacableSpot'
-import type { BoardObject, BoardCellObject, BoardPositionObject } from '../../service/WebSocketObjects'
+import type { BoardObject, BoardCellObject, BoardPositionObject } from '../../../service/WebSocketObjects'
 
 function Board({ board, currentCardColor, isCurrentPlayerTurn, winningLine, lastPlacedPosition, onCellClick }: { board: BoardObject; currentCardColor: string; isCurrentPlayerTurn: boolean; winningLine: BoardPositionObject[] | null; lastPlacedPosition: BoardPositionObject | null; onCellClick: (x: number, y: number) => void }) {
     const isCardClickable = (cell: BoardCellObject): boolean => {

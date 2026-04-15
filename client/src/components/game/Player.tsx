@@ -1,6 +1,19 @@
 import './Player.scss'
 
-function Player(player: { name: string, color: string | string[], vertical: boolean, active: boolean, point1: boolean, point2: boolean, currentCard?: string, activeCardColor?: string, isPlayingActive?: boolean }) {
+type PlayerProps = {
+    name: string;
+    color: string | string[];
+    vertical: boolean;
+    active: boolean;
+    point1: boolean;
+    point2: boolean;
+    currentCard?: string;
+    activeCardColor?: string;
+    isPlayingActive?: boolean;
+    hidden?: boolean;
+}
+
+function Player(player: PlayerProps) {
     const colors = Array.isArray(player.color) ? player.color : [player.color];
     const primaryColor = colors[0];
     const displayColor = player.active && player.activeCardColor ? player.activeCardColor : primaryColor;
@@ -9,7 +22,7 @@ function Player(player: { name: string, color: string | string[], vertical: bool
     const cardDisplayColor = player.active ? displayColor : (player.isPlayingActive ? 'gray' : 'gray');
 
     return (
-        <div className={`player-container ${displayColor} ${player.vertical ? 'vertical' : 'horizontal'} ${player.active ? 'active' : ''}`}>
+        <div className={`player-container ${displayColor} ${player.vertical ? 'vertical' : 'horizontal'} ${player.active ? 'active' : ''} ${player.hidden ? 'hidden' : ''}`}>
             <div className="color-indicators">
                 {colors.map((color, index) => (
                     <div key={index} className={`color-indicator ${color}`}></div>

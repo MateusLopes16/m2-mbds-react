@@ -1,5 +1,5 @@
 import './LeaderboardPlayer.scss';
-import type { PlayerObject } from '../../service/WebSocketObjects';
+import type { PlayerObject } from '../../../service/WebSocketObjects';
 
 function LeaderboardPlayer({ player, index, isWinner }: { player: PlayerObject; index: number; isWinner: boolean }) {
     return (

@@ -1,9 +1,9 @@
-import Card from '../game/Card';
+import Card from '../game/board/Card';
 import './rules.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import PlacableSpot from '../game/PlacableSpot';
-import UnPlacableSpot from '../game/UnplacableSpot';
+import PlacableSpot from '../game/board/PlacableSpot';
+import UnPlacableSpot from '../game/board/UnplacableSpot';
 import WinningConditionsDemo from './WinningConditionsDemo';
 
 function Rules() {

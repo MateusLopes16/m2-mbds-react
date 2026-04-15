@@ -151,4 +151,10 @@
             width: 100%;
         }
     }
+
+    @media screen and (max-width: 475px) {
+        .card {
+            max-width: 325px;
+        }
+    }
 }

@@ -1,7 +1,7 @@
 import './Game.scss'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Player from './Player'
-import Board from './Board'
+import Board from './board/Board'
 import type { BoardPositionObject, CardObject, GameObject, PlacementObject } from '../../service/WebSocketObjects'
 
 type GameViewProps = {
@@ -16,7 +16,34 @@ type GameViewProps = {
     rightBoardControl?: ReactNode;
 }
 
-function GameView({ currentGame, activePlayerName, currentCard, winningLine, lastPlacedPosition, currentPlayerName, placeCard, leftBoardControl, rightBoardControl }: GameViewProps) {
+function GameView({ currentGame, activePlayerName, currentCard, winningLine, lastPlacedPosition, currentPlayerName, placeCard }: GameViewProps) {
+    const [isMobileLayout, setIsMobileLayout] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.innerWidth < 600;
+    });
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(max-width: 599px)');
+
+        const handleMediaChange = (event: MediaQueryListEvent) => {
+            setIsMobileLayout(event.matches);
+        };
+
+        setIsMobileLayout(mediaQuery.matches);
+        mediaQuery.addEventListener('change', handleMediaChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleMediaChange);
+        };
+    }, []);
+
     if (!currentGame || !currentGame.players) {
         return <div>Loading...</div>
     }
@@ -52,7 +79,19 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
         const player = getPlayerAtPosition(playerIndex);
 
         if (!player) {
-            return null;
+            return <Player
+                key={`empty-${playerIndex}`}
+                name={''}
+                color={''}
+                vertical={!isMobileLayout && (playerIndex === 1 || playerIndex === 2)}
+                active={false}
+                point1={false}
+                point2={false}
+                currentCard={''}
+                activeCardColor={''}
+                isPlayingActive={false}
+                hidden={true}
+            />;
         }
 
         const cardValue = player.active && currentCard ? currentCard.value : '';
@@ -61,7 +100,7 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
                 key={player.name}
                 name={player.name}
                 color={player.color}
-                vertical={playerIndex === 1 || playerIndex === 2}
+                vertical={!isMobileLayout && (playerIndex === 1 || playerIndex === 2)}
                 active={player.active}
                 point1={player.point1}
                 point2={player.point2}
@@ -76,6 +115,7 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
     const leftPlayer = renderPlayerSpot(1);
     const rightPlayer = renderPlayerSpot(2);
     const bottomPlayer = renderPlayerSpot(3);
+    const mobilePlayers = [topPlayer, leftPlayer, rightPlayer, bottomPlayer];
 
     const handleCellClick = (x: number, y: number) => {
         if (!currentCard) {
@@ -91,16 +131,21 @@ function GameView({ currentGame, activePlayerName, currentCard, winningLine, las
     };
 
     return (
-        <div className="game-container">
-            {topPlayer && <div className="top">{topPlayer}</div>}
+        <div className={`game-container ${isMobileLayout ? 'mobile-layout' : ''}`}>
+            {!isMobileLayout && topPlayer && <div className="top">{topPlayer}</div>}
             <div className="center">
-                {leftPlayer}
+                {!isMobileLayout && leftPlayer}
                 <div className="board-shell">
                     <Board board={currentGame.board} currentCardColor={currentCard?.color || ''} isCurrentPlayerTurn={currentPlayerName === activePlayerName} winningLine={winningLine} lastPlacedPosition={lastPlacedPosition} onCellClick={handleCellClick} />
                 </div>
-                {rightPlayer}
+                {!isMobileLayout && rightPlayer}
             </div>
-            {bottomPlayer && <div className="bottom">{bottomPlayer}</div>}
+            {isMobileLayout && (
+                <div className="mobile-side-players">
+                    {mobilePlayers}
+                </div>
+            )}
+            {!isMobileLayout && bottomPlayer && <div className="bottom">{bottomPlayer}</div>}
         </div>
     )
 }

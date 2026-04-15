@@ -1,5 +1,5 @@
 import './Leaderboard.scss';
-import { useWebSocket } from '../../service/WebSocket'
+import { useWebSocket } from '../../../service/WebSocket'
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import LeaderboardPlayer from './LeaderboardPlayer';

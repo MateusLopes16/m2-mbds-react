@@ -19,7 +19,7 @@ $player-colors: (
     &.horizontal {
         flex-direction: row;
         width: 350px;
-        height: 100px;
+        height: 90px;
     }
 
     &.vertical {
@@ -31,6 +31,11 @@ $player-colors: (
     &.active {
         background-color: color-mix(var(--player-color) 30%, transparent);
         border: 3px solid color-mix(var(--player-color) 80%, transparent);
+    }
+
+    &.hidden {
+        visibility: hidden;
+        pointer-events: none;
     }
 
     @each $name, $value in $player-colors {
@@ -145,6 +150,46 @@ $player-colors: (
 
         .value {
             color: var(--text-color);
+        }
+    }
+
+    @media screen and (max-width: 800px) {
+        .current-card {
+            width: 50px;
+            height: 50px;
+        }
+    }
+
+    @media screen and (max-width: 600px) {
+        &.horizontal {
+            width: 100%;
+            max-width: 340px;
+            height: 72px;
+            padding: 8px 10px;
+            justify-content: space-between;
+        }
+
+        .player-name {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.75rem;
+        }
+
+        .score {
+            .point1,
+            .point2 {
+                width: 22px;
+                height: 32px;
+            }
+        }
+
+        .current-card {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            font-size: 1rem;
         }
     }
 }
