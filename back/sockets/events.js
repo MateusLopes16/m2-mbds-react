@@ -6,6 +6,99 @@ const { upsertJsonObjectBySession } = require('../mongodb');
 const WINNING_LINE_HIGHLIGHT_MS = 2400;
 
 /**
+ * Returns a lightweight player object safe for websocket payloads.
+ *
+ * @param {Object} player
+ * @returns {{name: string, score: number, color: string[], isHost: boolean}}
+ */
+function serializePlayer(player) {
+    return {
+        name: player?.name,
+        score: player?.score || 0,
+        color: player?.color || [],
+        isHost: !!player?.isHost
+    };
+}
+
+/**
+ * Returns a lightweight board cell for websocket payloads.
+ *
+ * @param {Object} cell
+ * @returns {Object}
+ */
+function serializeBoardCell(cell) {
+    if (!cell) {
+        return { type: 'unplacableSpot' };
+    }
+
+    if (cell.type === 'placableSpot') {
+        return { type: 'placableSpot' };
+    }
+
+    if (cell.type === 'unplacableSpot') {
+        return { type: 'unplacableSpot' };
+    }
+
+    const ownerName = typeof cell.owner === 'object' ? cell.owner?.name : cell.owner;
+    return {
+        type: cell.type,
+        value: cell.value,
+        color: cell.color,
+        owner: ownerName ? { name: ownerName } : undefined,
+        isPlacable: !!cell.isPlacable
+    };
+}
+
+/**
+ * Builds a realtime-safe game state for websocket events.
+ * Excludes large internal fields such as replay timeline.
+ *
+ * @param {Object} game
+ * @returns {Object}
+ */
+function buildRealtimeGameState(game) {
+    if (!game) {
+        return null;
+    }
+
+    return {
+        id: game.id,
+        players: (game.players || []).map(serializePlayer),
+        currentPlayerIndex: game.currentPlayerIndex,
+        winner: game.winner || null,
+        board: game.board
+            ? {
+                cells: game.board.cells.map((row) => row.map(serializeBoardCell))
+            }
+            : undefined
+    };
+}
+
+/**
+ * Builds a realtime-safe turn payload for websocket events.
+ *
+ * @param {Object} turn
+ * @returns {Object|null}
+ */
+function buildRealtimeTurn(turn) {
+    if (!turn || !turn.card || !turn.game) {
+        return null;
+    }
+
+    return {
+        card: {
+            type: turn.card.type,
+            value: turn.card.value,
+            color: turn.card.color,
+            owner: serializePlayer(turn.card.owner),
+            isPlacable: !!turn.card.isPlacable
+        },
+        game: buildRealtimeGameState(turn.game),
+        currentPlayerIndex: turn.game.currentPlayerIndex
+    };
+}
+
+/**
  * Checks whether a player name is already present in a room.
  *
  * @param {Object} game - Room/game object containing players
@@ -185,18 +278,23 @@ function handlePlaceCard(io, socket) {
             }
         }
 
+        const player = game.players.find((p) => p.name === playerName);
+        if (!player) {
+            emitToSocket(io, socket.id, 'error', { message: 'Player not found in room' });
+            return;
+        }
+
         // Place the card on the board
         board[x][y] = {
             type: 'card',
             value: card.value,
-            owner: card.owner,
+            owner: player,
             color: card.color,
             isPlacable: false
         };
 
         // Remove the card from player's hand
-        const player = game.players.find((p) => p.name === playerName);
-        if (player && player.cards) {
+        if (player.cards) {
             const cardIndex = player.cards.findIndex(
                 (c) => c.value === card.value && c.color === card.color
             );
@@ -211,7 +309,7 @@ function handlePlaceCard(io, socket) {
         if (winningLine) {
             player.score = (player.score || 0) + 1;
             scoringPlayerName = player.name;
-            emitToRoom(io, idSession, 'playerPoint', { game, winningLine, placedPosition });
+            emitToRoom(io, idSession, 'playerPoint', { game: buildRealtimeGameState(game), winningLine, placedPosition });
 
             const replayTurn = buildReplayTurn(game, playerName, card, { x, y }, { scoringPlayerName, winningLine });
             game.replayTimeline = game.replayTimeline || [];
@@ -225,14 +323,15 @@ function handlePlaceCard(io, socket) {
                 } catch (error) {
                     console.error('[replay] Failed to save final replay:', error.message);
                 }
-                emitToRoom(io, idSession, 'gameEnded', { game, winningLine, placedPosition });
+                emitToRoom(io, idSession, 'gameEnded', { game: buildRealtimeGameState(game), winningLine, placedPosition });
                 return;
             }
 
             setTimeout(() => {
                 removeBestPlacedCardFromPlayer(game, player, board[x][y].color);
                 resetGameBoard(game);
-                emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+                const nextTurn = playerTurn(game);
+                emitToRoom(io, idSession, 'playerTurn', buildRealtimeTurn(nextTurn));
             }, WINNING_LINE_HIGHLIGHT_MS);
             return;
         }
@@ -243,8 +342,9 @@ function handlePlaceCard(io, socket) {
 
         buildGameReplayObjectForMongo(game, idSession);
 
-        emitToRoom(io, idSession, 'gameUpdated', { game, placedPosition });
-        emitToRoom(io, idSession, 'playerTurn', playerTurn(game));
+        emitToRoom(io, idSession, 'gameUpdated', { game: buildRealtimeGameState(game), placedPosition });
+        const nextTurn = playerTurn(game);
+        emitToRoom(io, idSession, 'playerTurn', buildRealtimeTurn(nextTurn));
     };
 }
 
@@ -294,7 +394,7 @@ function handleJoinRoom(io, socket) {
         socket.data.playerName = room.player.name;
 
         const game = games[idSession];
-        emitToSocket(io, socket.id, 'joinedRoom', game);
+        emitToSocket(io, socket.id, 'joinedRoom', buildRealtimeGameState(game));
         emitToRoom(io, idSession, 'addPlayerToRoom', room.player);
     };
 }
@@ -360,8 +460,8 @@ function handleStartGame(io, socket) {
 
         const nextTurn = playerTurn(games[idSession]);
 
-        emitToRoom(io, idSession, 'gameStarted', games[idSession]);
-        emitToRoom(io, idSession, 'playerTurn', nextTurn);
+        emitToRoom(io, idSession, 'gameStarted', buildRealtimeGameState(games[idSession]));
+        emitToRoom(io, idSession, 'playerTurn', buildRealtimeTurn(nextTurn));
     };
 }
 
@@ -411,7 +511,7 @@ function removePlayerFromRoom(io, roomId, playerName) {
         game.players[0].isHost = true;
     }
 
-    emitToRoom(io, roomId, 'deletePlayerInRoom', game);
+    emitToRoom(io, roomId, 'deletePlayerInRoom', buildRealtimeGameState(game));
 }
 
 /**

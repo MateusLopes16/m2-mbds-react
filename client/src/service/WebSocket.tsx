@@ -116,9 +116,12 @@ function WebSocketProvider({ children }: { children: ReactNode }) {
         if (socketRef.current) return socketRef.current;
 
         const activeSocket = io(SOCKETSERVERURL, {
-            transports: ["websocket"],
             autoConnect: false,
             query: { roomId },
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 500,
+            reconnectionDelayMax: 5000,
         });
 
         registerSocketEvents(activeSocket, roomId, playerName);

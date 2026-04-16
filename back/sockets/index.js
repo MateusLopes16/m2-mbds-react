@@ -6,6 +6,9 @@ function initSocketServer(httpServer) {
         cors: {
             origin: '*', // you can replace with your frontend URL later
         },
+        pingInterval: 25000,
+        pingTimeout: 60000,
+        maxHttpBufferSize: 1e6,
     });
 
     io.on('connection', (socket) => {
